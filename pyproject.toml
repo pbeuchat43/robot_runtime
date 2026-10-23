@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "robot-runtime"
+version = "0.1.0.dev19"
+description = "Explicit systemd runtime management and authenticated browser access"
+requires-python = ">=3.12"
+license = {file = "LICENSE"}
+readme = "README.md"
+authors = [{name = "Paul N. Beuchat"}]
+
+[project.urls]
+Repository = "https://github.com/pbeuchat43/robot_runtime"
+
+[project.optional-dependencies]
+web = ["aiohttp==3.14.4"]
+
+[project.scripts]
+robot-runtime = "robot_runtime.cli:main"
+robot-runtime-manager = "robot_runtime.manager:main"
+robot-runtime-web = "robot_runtime.web:main"
+robot-runtime-av = "robot_runtime.av.worker:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+robot_runtime = ["static/*", "static/av/*", "static/av/components/*", "static/av/vendor/*", "av/*.json", "resources/*.service"]

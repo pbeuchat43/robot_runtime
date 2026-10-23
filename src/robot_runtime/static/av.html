@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en"><head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Camera and gamepad · Robot runtime</title>
+  <link rel="stylesheet" href="/assets/style.css"><link rel="stylesheet" href="/assets/av/components.css">
+  <link rel="stylesheet" href="/assets/av/page.css">
+  <script type="module" src="/assets/av/page.js"></script>
+</head><body>
+  <header><div><p class="eyebrow">ROBOT / CAMERA AND INPUT</p><h1 id="title">Camera and gamepad</h1>
+    <p>Start each service, then connect. Input provides diagnostic receipts only.</p></div></header>
+  <main>
+    <nav><a href="/">Reference controls</a> · <a href="/video">Video</a> · <a href="/input">Gamepad input</a> · <a href="/camera-gamepad">Combined view</a></nav>
+    <section class="av-access"><form id="unlock"><span id="sign-in"><label>Robot passphrase <input id="passphrase" type="password" autocomplete="current-password" required></label>
+      <button type="submit">Unlock commands</button></span><button id="lock" type="button" disabled>Lock commands</button></form>
+      <p id="auth-status" role="status"></p><p id="message" role="status"></p></section>
+    <details class="av-runtime"><summary>Runtime ownership and service state</summary><section id="runtime"></section></details>
+    <div class="av-columns">
+    <section id="media-section"><h2>Video service</h2><label>Declared source <select id="media-select"></select></label>
+      <button id="media-start" disabled>Start video service</button><button id="media-stop" disabled>Stop video service</button>
+      <p id="media-status" role="status"></p><div id="video"></div><div id="settings"></div></section>
+    <section id="input-section"><h2>Input service</h2><label>Declared receiver <select id="input-select"></select></label>
+      <button id="input-start" disabled>Start input service</button><button id="input-stop" disabled>Stop input service</button>
+      <p id="input-status" role="status"></p><div id="receipt"></div><div id="gamepad"></div></section>
+    </div>
+  </main><footer>Vehicle actuation requires its own integration milestone. No input on this page drives a vehicle.</footer>
+</body></html>

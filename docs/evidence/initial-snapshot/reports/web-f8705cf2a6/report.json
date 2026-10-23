@@ -1,0 +1,146 @@
+{
+  "token": "f8705cf2a6",
+  "checks": [
+    {
+      "check": "public_status_cannot_command",
+      "passed": true
+    },
+    {
+      "check": "https_cookie_origin_host_and_csrf_enforced",
+      "passed": true
+    },
+    {
+      "check": "ordinary_start_keeps_images_off_and_explicit_mode_starts_same_unit",
+      "passed": true
+    },
+    {
+      "check": "five_public_requests_share_one_capture_and_release_subscription",
+      "passed": true,
+      "snapshot": {
+        "acquisition_age_at_receipt": 0.004925563,
+        "acquisition_age_seconds": 0.06941997498492422,
+        "acquisition_clock": "host_system",
+        "acquisition_timestamp_ns": "1792799006798041049",
+        "boot_id": "3da364df-2ec6-41ad-afb0-905abaf8e9ff",
+        "capability_id": "image",
+        "config_revision": "9f78a380a01dc86f7a63161cab37ec432a476cc18b4f2cfd6c1a77f06415094d",
+        "frame_id": "camera",
+        "generation": "99d16b7dca9a4c5bb716b902d5e81b74",
+        "height": 480,
+        "jpeg_bytes": 14533,
+        "mime_type": "image/jpeg",
+        "receipt_age_seconds": 0.06449441198492423,
+        "received_monotonic": 303799.252845354,
+        "run_id": "5f0163f27eb04010bca9b2d8554fdb50",
+        "snapshot_id": "5824e24e63a14e41b61d4a06b01b1b83",
+        "source_encoding": "bgr8",
+        "source_height": 480,
+        "source_width": 640,
+        "stale_after_seconds": 2,
+        "width": 640,
+        "request_duration_seconds": 4.171218357048929
+      },
+      "status_read_during_capture_seconds": 0.01749167003436014,
+      "ordinary_topic_progress_during_capture": true
+    },
+    {
+      "check": "old_future_wrong_frame_and_oversized_images_are_not_delivered",
+      "passed": true
+    },
+    {
+      "check": "stale_capture_targets_and_unauthorized_image_mode_starts_are_rejected",
+      "passed": true
+    },
+    {
+      "check": "browser_renders_one_image_then_marks_its_acquisition_stale",
+      "passed": true
+    },
+    {
+      "check": "simulated_hidden_page_cancels_pending_capture_and_releases_native_subscription",
+      "passed": true
+    },
+    {
+      "check": "stop_clears_snapshot",
+      "passed": true
+    },
+    {
+      "check": "real_chromium_unlock_start_status_logs_stop_lock",
+      "passed": true,
+      "independent_session": true,
+      "javascript_exceptions": []
+    },
+    {
+      "check": "cli_operates_with_web_down_and_workload_survives_web_exit",
+      "passed": true
+    },
+    {
+      "check": "web_restart_revokes_sessions",
+      "passed": true
+    },
+    {
+      "check": "five_concurrent_observation_connections",
+      "passed": true
+    }
+  ],
+  "origin": "https://localhost:54149",
+  "browser_profile": "/home/poi/snap/chromium/common/robot-runtime-test-f8705cf2a6",
+  "tls": "Temporary certificate trusted by the API client; Chromium trusts only its SPKI for this test",
+  "passed": true,
+  "final_status": {
+    "age_seconds": 0.00016345997573807836,
+    "api_version": 1,
+    "boot_id": "3da364df-2ec6-41ad-afb0-905abaf8e9ff",
+    "config_revision": "9f78a380a01dc86f7a63161cab37ec432a476cc18b4f2cfd6c1a77f06415094d",
+    "conflicts": [],
+    "error": null,
+    "fresh": true,
+    "generation": "99d16b7dca9a4c5bb716b902d5e81b74",
+    "observed_monotonic": 303842.993771532,
+    "revision": 54,
+    "robot_id": "snapshot-fixture",
+    "ros": {
+      "available": true,
+      "capability_revision": 8,
+      "enabled": true,
+      "error": null,
+      "generation": "105c32a1c84c43428086becec9c62258",
+      "snapshot_capture": null,
+      "subscriptions": []
+    },
+    "server_time_ms": 1792799050544,
+    "units": [
+      {
+        "available": true,
+        "blocked": false,
+        "fresh": true,
+        "label": "Synthetic image provider",
+        "launch_mode": null,
+        "launch_modes": [
+          {
+            "id": "images",
+            "label": "Start with images"
+          }
+        ],
+        "lifecycle": "exited",
+        "main_exit_code": 2,
+        "main_exit_status": 2,
+        "main_pid": 0,
+        "members": [],
+        "observation_age_seconds": 0.8236550510046072,
+        "ownership": "owned",
+        "ownership_observation_age_seconds": 0.8236545069958083,
+        "public_logs": true,
+        "readiness": "unavailable",
+        "run_id": "818a2497988445949c676e5b8b0acbb2",
+        "start_blocked_by": [],
+        "stop_phase": "complete",
+        "stop_request_id": "0e4dc092-051e-4058-a776-a8d0cfd39a0c",
+        "supervisor_result": "success",
+        "supervisor_state": "inactive",
+        "unavailable_reason": null,
+        "unit_id": "idle"
+      }
+    ]
+  },
+  "cleanup_errors": []
+}

@@ -1,0 +1,280 @@
+{
+  "token": "18e2d98d8a",
+  "checks": [
+    {
+      "check": "public_status_cannot_command",
+      "passed": true
+    },
+    {
+      "check": "https_cookie_origin_host_and_csrf_enforced",
+      "passed": true
+    },
+    {
+      "check": "ros_browser_initial_view_has_no_topic_demand",
+      "passed": true
+    },
+    {
+      "check": "ros_browser_renders_fresh_lossless_int64",
+      "passed": true,
+      "displayed": "9007199254741023"
+    },
+    {
+      "check": "ros_browser_marks_stale_and_pause_releases_then_resumes_new_stream",
+      "passed": true
+    },
+    {
+      "check": "ros_browser_simulated_visibility_handler_releases_and_resumes",
+      "passed": true
+    },
+    {
+      "check": "ros_browser_typed_service_acceptance_and_refusal",
+      "passed": true
+    },
+    {
+      "check": "ros_https_requires_csrf_and_declared_capability",
+      "passed": true
+    },
+    {
+      "check": "ros_browser_timeout_and_reload_never_replay_and_require_local_acknowledgement",
+      "passed": true
+    },
+    {
+      "check": "five_https_ros_streams_share_one_native_subscription",
+      "passed": true
+    },
+    {
+      "check": "last_https_ros_consumer_releases_native_subscription",
+      "passed": true
+    },
+    {
+      "check": "local_uncertainty_acknowledgement_updates_open_browser",
+      "passed": true
+    },
+    {
+      "check": "cached_reads_and_closed_panel_are_idle_then_native_host_workload_gpu_metrics_arrive",
+      "passed": true,
+      "sample": {
+        "age_seconds": 0.09237899095751345,
+        "api_version": 1,
+        "collecting": true,
+        "consumers": 1,
+        "fresh": true,
+        "generation": "9839581f41054e0c99b56cc70f58815f",
+        "interval_seconds": 1.0,
+        "latest": {
+          "error": null,
+          "gpu": {
+            "activity_percent": null,
+            "error": "GPU telemetry unavailable",
+            "source": "tegrastats",
+            "temperature_c": null
+          },
+          "host": {
+            "cpu_percent": 6.87,
+            "errors": [],
+            "memory_total_bytes": 16355569664,
+            "memory_used_bytes": 1853104128,
+            "swap_total_bytes": 2147479552,
+            "swap_used_bytes": 39583744
+          },
+          "monotonic": 303710.037965667,
+          "sequence": 2,
+          "time_ms": 1792798917590,
+          "units": [
+            {
+              "cpu_percent": 9.27,
+              "errors": [],
+              "label": "Synthetic ROS provider",
+              "lifecycle": "running",
+              "memory_current_bytes": 36352000,
+              "rss_bytes": 64663552,
+              "run_id": "6a4de60f5e5f4316b29594616c518722",
+              "unit_id": "idle"
+            }
+          ]
+        },
+        "retention_seconds": 600,
+        "sample_count": 2,
+        "sequence": 2,
+        "server_time_ms": 1792798917680,
+        "stale_after_seconds": 3.0
+      },
+      "gpu": {
+        "activity_percent": 0,
+        "error": null,
+        "source": "tegrastats",
+        "temperature_c": 56.125
+      }
+    },
+    {
+      "check": "five_browser_viewers_share_one_manager_collector",
+      "passed": true,
+      "consumers": 1
+    },
+    {
+      "check": "last_viewer_release_stops_collection_and_resume_retains_a_real_history_gap",
+      "passed": true
+    },
+    {
+      "check": "hidden_page_releases_demand_and_manager_restart_clears_history_without_restarting_workloads",
+      "passed": true
+    },
+    {
+      "check": "three_tabs_share_one_stream_each_and_http_reads_and_command_rejections_complete",
+      "passed": true,
+      "results": [
+        {
+          "reads": [
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "milliseconds": 50.89999997615814,
+          "rejection": {
+            "status": 404,
+            "code": "not_found"
+          },
+          "channels": [
+            "open",
+            "open",
+            "open"
+          ],
+          "physicalMembers": 3,
+          "sourceOpen": true
+        },
+        {
+          "reads": [
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "milliseconds": 46,
+          "rejection": {
+            "status": 404,
+            "code": "not_found"
+          },
+          "channels": [
+            "open",
+            "open",
+            "open"
+          ],
+          "physicalMembers": 3,
+          "sourceOpen": true
+        },
+        {
+          "reads": [
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "milliseconds": 49.19999998807907,
+          "rejection": {
+            "status": 404,
+            "code": "not_found"
+          },
+          "channels": [
+            "open",
+            "open",
+            "open"
+          ],
+          "physicalMembers": 3,
+          "sourceOpen": true
+        }
+      ],
+      "synthetic_visibility": true,
+      "independent_devices": false
+    },
+    {
+      "check": "autonomous_and_outreach_compositions_reuse_packaged_clients_and_views",
+      "passed": true
+    },
+    {
+      "check": "real_chromium_unlock_start_status_logs_stop_lock",
+      "passed": true,
+      "independent_session": true,
+      "javascript_exceptions": []
+    },
+    {
+      "check": "standalone_cli_resource_watch_works_with_web_stopped",
+      "passed": true
+    },
+    {
+      "check": "cli_operates_with_web_down_and_workload_survives_web_exit",
+      "passed": true
+    },
+    {
+      "check": "web_restart_revokes_sessions",
+      "passed": true
+    },
+    {
+      "check": "five_concurrent_observation_connections",
+      "passed": true
+    },
+    {
+      "check": "closed_observation_stream_recovers_after_admission_limit_without_new_runs",
+      "passed": true
+    }
+  ],
+  "origin": "https://localhost:40783",
+  "browser_profile": "/home/poi/snap/chromium/common/robot-runtime-test-18e2d98d8a",
+  "tls": "Temporary certificate trusted by the API client; Chromium trusts only its SPKI for this test",
+  "passed": true,
+  "final_status": {
+    "age_seconds": 0.00013312295777723193,
+    "api_version": 1,
+    "boot_id": "3da364df-2ec6-41ad-afb0-905abaf8e9ff",
+    "config_revision": "e2eb9369461239a6fdd1f9a20d4612f68f4635701194a19ad68ea5697a374003",
+    "conflicts": [],
+    "error": null,
+    "fresh": true,
+    "generation": "53e12e8a37a94a5289afe7968b73e908",
+    "observed_monotonic": 303738.853379552,
+    "revision": 35,
+    "robot_id": "ros-fixture",
+    "ros": {
+      "available": true,
+      "capability_revision": 13,
+      "enabled": true,
+      "error": null,
+      "generation": "f0358a960b404f59b798a689f0e31072",
+      "snapshot_capture": null,
+      "subscriptions": []
+    },
+    "server_time_ms": 1792798946403,
+    "units": [
+      {
+        "available": true,
+        "blocked": false,
+        "fresh": true,
+        "label": "Synthetic ROS provider",
+        "launch_mode": null,
+        "launch_modes": [],
+        "lifecycle": "exited",
+        "main_exit_code": 1,
+        "main_exit_status": 0,
+        "main_pid": 0,
+        "members": [],
+        "observation_age_seconds": 6.947152849985287,
+        "ownership": "owned",
+        "ownership_observation_age_seconds": 6.947152337990701,
+        "public_logs": true,
+        "readiness": "unavailable",
+        "run_id": "83c119f3dc3c421d8634c254950f6b8c",
+        "start_blocked_by": [],
+        "stop_phase": "complete",
+        "stop_request_id": "1cb3da5f-d91e-472e-b9d2-aeed26817e51",
+        "supervisor_result": "success",
+        "supervisor_state": "inactive",
+        "unavailable_reason": null,
+        "unit_id": "idle"
+      }
+    ]
+  },
+  "cleanup_errors": []
+}

@@ -1,0 +1,14 @@
+gstwebrtc-api 3.0.0, unmodified ESM distribution
+Copyright (C) 2022 Igalia S.L. and contributors
+License: Mozilla Public License 2.0 (LICENSE-MPL-2.0 alongside this file)
+Source: https://github.com/GStreamer/gst-plugins-rs/tree/0.14.5/net/webrtc/gstwebrtc-api
+Package: https://registry.npmjs.org/gstwebrtc-api/-/gstwebrtc-api-3.0.0.tgz
+Verified npm package integrity:
+sha512-tKPvAHe0OUoBJVDcNNTaACbz8zXVUCP+7owAnwqvC98u34laMYwYWmKuVBQweRI/Qq1NZiW1aZu44iZln1HbEw==
+
+The ESM file is served locally. Its default ICE configuration is explicitly
+overridden by media-client.js so no public STUN service is used at runtime.
+
+The ESM bundle includes webrtc-adapter under BSD 3-Clause; its original copyright
+banner is retained and its complete notice is in LICENSE-webrtc-adapter.
+Source: https://github.com/webrtcHacks/adapter/blob/main/LICENSE.md

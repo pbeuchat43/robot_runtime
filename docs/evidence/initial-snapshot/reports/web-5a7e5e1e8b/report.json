@@ -1,0 +1,326 @@
+{
+  "token": "5a7e5e1e8b",
+  "checks": [
+    {
+      "check": "public_status_cannot_command",
+      "passed": true
+    },
+    {
+      "check": "https_cookie_origin_host_and_csrf_enforced",
+      "passed": true
+    },
+    {
+      "check": "native_fiducial_metadata_duplicate_ids_and_full_camera_to_base_transform",
+      "passed": true,
+      "sample": {
+        "acquisition_age_at_receipt": 0.0019360179925023615,
+        "acquisition_age_seconds": 0.04942765598238102,
+        "acquisition_timestamp": "1792799182540329054",
+        "age_seconds": 0.047491637989878654,
+        "data": {
+          "acquisition_clock": "host_system",
+          "acquisition_timestamp_ns": "1792799182540329054",
+          "axes": "x_forward_y_left_z_up",
+          "detections": [
+            {
+              "id": 7,
+              "marker_size_m": 0.081,
+              "orientation_xyzw": [
+                -0.5,
+                0.5,
+                -0.5,
+                0.5
+              ],
+              "pose_valid": true,
+              "position": {
+                "x": 1.7,
+                "y": 0.2,
+                "z": 0.4
+              },
+              "reprojection_error_px": 0.4
+            },
+            {
+              "id": 7,
+              "marker_size_m": 0.162,
+              "orientation_xyzw": [
+                -0.27059805007309845,
+                0.6532814824381883,
+                -0.6532814824381883,
+                0.27059805007309845
+              ],
+              "pose_valid": true,
+              "position": {
+                "x": 1.7,
+                "y": 0.2,
+                "z": 0.8
+              },
+              "reprojection_error_px": 0.4
+            }
+          ],
+          "dictionary_name": "DICT_4X4_50",
+          "displayed_count": 2,
+          "frame_id": "base_link",
+          "invalid_pose_count": 0,
+          "orientation_convention": "view_from_marker",
+          "original_count": 2,
+          "positioned_count": 2,
+          "quaternion_xyzw": [
+            -0.5,
+            0.5,
+            -0.5,
+            0.5
+          ],
+          "source_frame_id": "camera_optical",
+          "transform": "declared_fixed_mount",
+          "translation_m": [
+            0.2,
+            0,
+            0.3
+          ],
+          "truncated": false,
+          "units": "m"
+        },
+        "fields": {},
+        "fresh": true,
+        "id": "fiducials",
+        "label": "Synthetic marker poses",
+        "max_rate_hz": 10,
+        "name": "/dr_test_5a7e5e1e8b/fiducials",
+        "node": "/dr_test_5a7e5e1e8b/fiducials",
+        "oversize_count": 0,
+        "progress_age_seconds": null,
+        "progress_counter": null,
+        "progress_monotonic": null,
+        "projection": {
+          "acquisition_clock": "system",
+          "array_field": "detections",
+          "dictionary_field": "dictionary_name",
+          "error_field": "reprojection_error_px",
+          "frame_id": "base_link",
+          "id_field": "id",
+          "kind": "fiducials",
+          "max_items": 20,
+          "pose_field": "pose",
+          "quaternion_xyzw": [
+            -0.5,
+            0.5,
+            -0.5,
+            0.5
+          ],
+          "size_field": "marker_size_m",
+          "source_frame_id": "camera_optical",
+          "translation_m": [
+            0.2,
+            0,
+            0.3
+          ],
+          "valid_field": "pose_valid"
+        },
+        "receipt_clock": "host_monotonic",
+        "received_count": 11,
+        "received_monotonic": 303974.991022057,
+        "run_id": "9ab6433024c8479aad393b6dc24ea32f",
+        "sample_age_at_receipt": null,
+        "sample_age_seconds": null,
+        "sequence": 11,
+        "source_clock": "rmw_source_timestamp",
+        "source_timestamp_ns": "1792799182540539940",
+        "stale_after_seconds": 0.75,
+        "status": "current",
+        "stream_generation": "c52fc1f445fb4bdbb61b7d6d6d5dd5dd",
+        "type": "robot_runtime_test_interfaces/msg/FiducialDetections",
+        "unit_id": "markers"
+      }
+    },
+    {
+      "check": "true_size_oriented_marker_planes_height_orbit_pan_zoom_presets_and_reset_preserve_runs",
+      "passed": true,
+      "geometry": [
+        {
+          "size": 0.081,
+          "corners": [
+            [
+              1.7,
+              0.24050000000000002,
+              0.35950000000000004
+            ],
+            [
+              1.7,
+              0.1595,
+              0.35950000000000004
+            ],
+            [
+              1.7,
+              0.1595,
+              0.4405
+            ],
+            [
+              1.7,
+              0.24050000000000002,
+              0.4405
+            ]
+          ],
+          "points": "343.0009311309069,263.47529044345265 345.3874165174115,264.91955895685294 345.3874165174115,262.2327761367499 343.0009311309069,260.7885076233496"
+        },
+        {
+          "size": 0.162,
+          "corners": [
+            [
+              1.7572756492761104,
+              0.25727564927611035,
+              0.7190000000000001
+            ],
+            [
+              1.6427243507238896,
+              0.14272435072388967,
+              0.7190000000000001
+            ],
+            [
+              1.6427243507238896,
+              0.14272435072388967,
+              0.881
+            ],
+            [
+              1.7572756492761104,
+              0.25727564927611035,
+              0.881
+            ]
+          ],
+          "points": "344.19417382415924,250.23024868169426 344.19417382415924,254.31525692041254 344.19417382415924,248.9416912802064 344.19417382415924,244.85668304148817"
+        }
+      ]
+    },
+    {
+      "check": "independent_demand_invalid_pose_empty_truncation_staleness_and_collision_clear_only_markers",
+      "passed": true
+    },
+    {
+      "check": "hidden_page_releases_all_layers_and_marker_provider_failure_preserves_siblings",
+      "passed": true
+    },
+    {
+      "check": "real_chromium_unlock_start_status_logs_stop_lock",
+      "passed": true,
+      "independent_session": true,
+      "javascript_exceptions": []
+    },
+    {
+      "check": "cli_operates_with_web_down_and_workload_survives_web_exit",
+      "passed": true
+    },
+    {
+      "check": "web_restart_revokes_sessions",
+      "passed": true
+    },
+    {
+      "check": "five_concurrent_observation_connections",
+      "passed": true
+    }
+  ],
+  "origin": "https://localhost:52405",
+  "browser_profile": "/home/poi/snap/chromium/common/robot-runtime-test-5a7e5e1e8b",
+  "tls": "Temporary certificate trusted by the API client; Chromium trusts only its SPKI for this test",
+  "passed": true,
+  "final_status": {
+    "age_seconds": 0.00014157197438180447,
+    "api_version": 1,
+    "boot_id": "3da364df-2ec6-41ad-afb0-905abaf8e9ff",
+    "config_revision": "cd3895a60227467bf89f88f78588024af63a247ffae6be86fcd80064df54ad79",
+    "conflicts": [],
+    "error": null,
+    "fresh": true,
+    "generation": "e73dc42eb7ec48ebb9508212986d610f",
+    "observed_monotonic": 303987.506062587,
+    "revision": 52,
+    "robot_id": "observation-fixture",
+    "ros": {
+      "available": true,
+      "capability_revision": 15,
+      "enabled": true,
+      "error": null,
+      "generation": "0ab02f5fc5f94c008fd1d5d951297fbd",
+      "snapshot_capture": null,
+      "subscriptions": []
+    },
+    "server_time_ms": 1792799195056,
+    "units": [
+      {
+        "available": true,
+        "blocked": false,
+        "fresh": true,
+        "label": "Synthetic observation provider",
+        "launch_mode": null,
+        "launch_modes": [],
+        "lifecycle": "exited",
+        "main_exit_code": 2,
+        "main_exit_status": 2,
+        "main_pid": 0,
+        "members": [],
+        "observation_age_seconds": 1.2025686019915156,
+        "ownership": "owned",
+        "ownership_observation_age_seconds": 1.20256825000979,
+        "public_logs": true,
+        "readiness": "unavailable",
+        "run_id": "56001246414a4b599ca21335d2715d44",
+        "start_blocked_by": [],
+        "stop_phase": "complete",
+        "stop_request_id": "f17209ed-2792-4439-a31b-a73e8f2c8df8",
+        "supervisor_result": "success",
+        "supervisor_state": "inactive",
+        "unavailable_reason": null,
+        "unit_id": "idle"
+      },
+      {
+        "available": true,
+        "blocked": false,
+        "fresh": true,
+        "label": "Synthetic lidar",
+        "launch_mode": null,
+        "launch_modes": [],
+        "lifecycle": "exited",
+        "main_exit_code": 1,
+        "main_exit_status": 0,
+        "main_pid": 0,
+        "members": [],
+        "observation_age_seconds": 0.031112950993701816,
+        "ownership": "owned",
+        "ownership_observation_age_seconds": 0.031112343014683574,
+        "public_logs": true,
+        "readiness": "unavailable",
+        "run_id": "9f8f90160fbc4a02bf77311f81162124",
+        "start_blocked_by": [],
+        "stop_phase": "complete",
+        "stop_request_id": "a1634647-7636-4528-aa4f-e859c4773478",
+        "supervisor_result": "success",
+        "supervisor_state": "inactive",
+        "unavailable_reason": null,
+        "unit_id": "peer"
+      },
+      {
+        "available": true,
+        "blocked": false,
+        "fresh": true,
+        "label": "Synthetic fiducials",
+        "launch_mode": null,
+        "launch_modes": [],
+        "lifecycle": "failed",
+        "main_exit_code": 1,
+        "main_exit_status": 7,
+        "main_pid": 0,
+        "members": [],
+        "observation_age_seconds": 2.5685027909930795,
+        "ownership": "owned",
+        "ownership_observation_age_seconds": 2.5685021830140613,
+        "public_logs": true,
+        "readiness": "unavailable",
+        "run_id": "9ab6433024c8479aad393b6dc24ea32f",
+        "start_blocked_by": [],
+        "supervisor_result": "exit-code",
+        "supervisor_state": "failed",
+        "unavailable_reason": null,
+        "unit_id": "markers"
+      }
+    ]
+  },
+  "cleanup_errors": []
+}

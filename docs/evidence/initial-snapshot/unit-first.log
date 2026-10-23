@@ -1,0 +1,341 @@
+test_authorization_rechecks_owner_expiry_and_generation (test_actions.ActionTests.test_authorization_rechecks_owner_expiry_and_generation) ... ok
+test_cancellation_is_exact_and_acknowledgement_is_not_terminal (test_actions.ActionTests.test_cancellation_is_exact_and_acknowledgement_is_not_terminal) ... ok
+test_duplicate_goal_is_never_resent_and_uncertainty_reserves_slot (test_actions.ActionTests.test_duplicate_goal_is_never_resent_and_uncertainty_reserves_slot) ... ok
+test_feedback_is_ephemeral_expires_and_old_generation_cannot_refresh_it (test_actions.ActionTests.test_feedback_is_ephemeral_expires_and_old_generation_cannot_refresh_it) ... ok
+test_new_goal_releases_previous_feedback_and_expired_dispatch_is_denied (test_actions.ActionTests.test_new_goal_releases_previous_feedback_and_expired_dispatch_is_denied) ... ok
+test_profile_limits_and_lossless_goal_arguments (test_actions.ActionTests.test_profile_limits_and_lossless_goal_arguments) ... ok
+test_recovery_uses_goal_order_despite_a_backward_wall_clock_adjustment (test_actions.ActionTests.test_recovery_uses_goal_order_despite_a_backward_wall_clock_adjustment) ... ok
+test_restart_tracks_original_uuid_without_sending_goal_or_cancel (test_actions.ActionTests.test_restart_tracks_original_uuid_without_sending_goal_or_cancel) ... ok
+test_signal_during_shared_event_wait_does_not_reenter_its_lock (test_av.CaptureSignalTests.test_signal_during_shared_event_wait_does_not_reenter_its_lock) ... ok
+test_assets_are_packaged_and_no_path_traversal (test_av.GatewayTests.test_assets_are_packaged_and_no_path_traversal) ... /tmp/robot-runtime-clean-e7b45109c263/venv/lib/python3.12/site-packages/robot_runtime/web.py:376: NotAppKeyWarning: It is recommended to use web.AppKey instances for keys.
+https://docs.aiohttp.org/en/stable/web_advanced.html#application-s-config
+  app["adapter"] = adapter
+Executing <Task pending name='Task-1' coro=<GatewayTests.asyncSetUp() running at /tmp/robot-runtime-clean-e7b45109c263/source/tests/test_av.py:158> cb=[_run_until_complete_cb() at /usr/lib/python3.12/asyncio/base_events.py:182] created at /usr/lib/python3.12/asyncio/runners.py:100> took 0.271 seconds
+ok
+test_authenticated_run_bound_commands_and_private_routes (test_av.GatewayTests.test_authenticated_run_bound_commands_and_private_routes) ... Executing <Task pending name='Task-20' coro=<GatewayTests.asyncSetUp() running at /tmp/robot-runtime-clean-e7b45109c263/source/tests/test_av.py:158> cb=[_run_until_complete_cb() at /usr/lib/python3.12/asyncio/base_events.py:182] created at /usr/lib/python3.12/asyncio/runners.py:100> took 0.267 seconds
+ok
+test_observation_error_field_is_not_an_http_error_envelope (test_av.NativeReplyTests.test_observation_error_field_is_not_an_http_error_envelope) ... ok
+test_optional_bounded_services_and_exact_physical_ownership (test_av.ProfileTests.test_optional_bounded_services_and_exact_physical_ownership) ... ok
+test_target_requires_fresh_owned_run_and_current_ros_source_mode (test_av.ProfileTests.test_target_requires_fresh_owned_run_and_current_ros_source_mode) ... ok
+test_consumer_cannot_send_audio_data_or_publishing_sdp (test_av.SessionTests.test_consumer_cannot_send_audio_data_or_publishing_sdp) ... ok
+test_dedup_owner_bounds_expiry_and_no_resurrection (test_av.SessionTests.test_dedup_owner_bounds_expiry_and_no_resurrection) ... ok
+test_media_lease_expires_even_if_browser_authentication_is_live (test_av.SessionTests.test_media_lease_expires_even_if_browser_authentication_is_live) ... ok
+test_private_producer_and_admitted_consumers_cannot_escalate_roles (test_av.SignallingTests.test_private_producer_and_admitted_consumers_cannot_escalate_roles) ... ok
+test_compact_ack_preserves_receipt_identity_and_preview (test_av_gamepad.ReceiptTests.test_compact_ack_preserves_receipt_identity_and_preview) ... ok
+test_delayed_packet_cannot_restart_freshness_and_new_lease_recovers (test_av_gamepad.ReceiptTests.test_delayed_packet_cannot_restart_freshness_and_new_lease_recovers) ... ok
+test_freshness_thresholds_are_configurable (test_av_gamepad.ReceiptTests.test_freshness_thresholds_are_configurable) ... ok
+test_input_only_session_does_not_require_video_but_input_still_expires (test_av_gamepad.ReceiptTests.test_input_only_session_does_not_require_video_but_input_still_expires) ... ok
+test_nonstandard_has_raw_values_but_no_driving_mapping (test_av_gamepad.ReceiptTests.test_nonstandard_has_raw_values_but_no_driving_mapping) ... ok
+test_pause_interlock_epoch_and_missing_or_old_video (test_av_gamepad.ReceiptTests.test_pause_interlock_epoch_and_missing_or_old_video) ... ok
+test_reorder_expiry_and_disconnect (test_av_gamepad.ReceiptTests.test_reorder_expiry_and_disconnect) ... ok
+test_untrusted_values_are_rejected (test_av_gamepad.ReceiptTests.test_untrusted_values_are_rejected) ... ok
+test_fixed_choices_deduplicate_and_keep_publication_separate (test_commands.CommandTests.test_fixed_choices_deduplicate_and_keep_publication_separate) ... ok
+test_profile_restricts_choices_and_aggregate_observation_size (test_commands.CommandTests.test_profile_restricts_choices_and_aggregate_observation_size) ... ok
+test_rejects_arbitrary_input_and_stale_authority (test_commands.CommandTests.test_rejects_arbitrary_input_and_stale_authority) ... ok
+test_restart_never_replays_and_requires_local_uncertainty_acknowledgement (test_commands.CommandTests.test_restart_never_replays_and_requires_local_uncertainty_acknowledgement) ... ok
+test_available_unit_cannot_require_an_unavailable_unit (test_core.PolicyTests.test_available_unit_cannot_require_an_unavailable_unit) ... ok
+test_clean_signal_exit_preserves_raw_status_without_claiming_failure (test_core.PolicyTests.test_clean_signal_exit_preserves_raw_status_without_claiming_failure) ... ok
+test_conflict_blocks_all_modes_through_restart_and_stop_timeout (test_core.PolicyTests.test_conflict_blocks_all_modes_through_restart_and_stop_timeout) ... ok
+test_database_lock_and_live_unit_constraint_preserve_existing_run (test_core.PolicyTests.test_database_lock_and_live_unit_constraint_preserve_existing_run) ... ok
+test_descendants_block_replacement_after_main_exit (test_core.PolicyTests.test_descendants_block_replacement_after_main_exit) ... ok
+test_expiry_is_checked_again_after_audit (test_core.PolicyTests.test_expiry_is_checked_again_after_audit) ... ok
+test_explicit_start_deduplicates_and_rejects_conflicting_reuse (test_core.PolicyTests.test_explicit_start_deduplicates_and_rejects_conflicting_reuse) ... ok
+test_failure_and_success_do_not_restart_and_allow_a_new_explicit_run (test_core.PolicyTests.test_failure_and_success_do_not_restart_and_allow_a_new_explicit_run) ... ok
+test_first_empty_observation_after_deadline_preserves_timeout (test_core.PolicyTests.test_first_empty_observation_after_deadline_preserves_timeout) ... ok
+test_foreign_namespace_blocks_commands (test_core.PolicyTests.test_foreign_namespace_blocks_commands) ... ok
+test_foreign_service_does_not_prevent_stopping_an_owned_run (test_core.PolicyTests.test_foreign_service_does_not_prevent_stopping_an_owned_run) ... ok
+test_local_inspection_exposes_identity_without_launch_arguments (test_core.PolicyTests.test_local_inspection_exposes_identity_without_launch_arguments) ... ok
+test_lost_start_reply_is_recovered_without_replay (test_core.PolicyTests.test_lost_start_reply_is_recovered_without_replay) ... ok
+test_public_status_omits_environment_and_executable (test_core.PolicyTests.test_public_status_omits_environment_and_executable) ... ok
+test_reboot_does_not_replay_old_run_or_stop (test_core.PolicyTests.test_reboot_does_not_replay_old_run_or_stop) ... ok
+test_restart_keeps_owned_run_without_launch_or_signal (test_core.PolicyTests.test_restart_keeps_owned_run_without_launch_or_signal) ... ok
+test_saved_terminal_evidence_finishes_stop_after_crash (test_core.PolicyTests.test_saved_terminal_evidence_finishes_stop_after_crash) ... ok
+test_stale_stop_and_changed_ownership_never_signal (test_core.PolicyTests.test_stale_stop_and_changed_ownership_never_signal) ... ok
+test_stop_deadline_advances_while_supervisor_is_disconnected (test_core.PolicyTests.test_stop_deadline_advances_while_supervisor_is_disconnected) ... ok
+test_stop_timeout_preserves_process_and_is_not_repeated_on_restart (test_core.PolicyTests.test_stop_timeout_preserves_process_and_is_not_repeated_on_restart) ... ok
+test_unavailable_catalog_entry_has_no_launch_and_rejects_start (test_core.PolicyTests.test_unavailable_catalog_entry_has_no_launch_and_rejects_start) ... ok
+test_uncertain_dispatch_reserves_conflicting_unit_until_resolution (test_core.PolicyTests.test_uncertain_dispatch_reserves_conflicting_unit_until_resolution) ... ok
+test_undispatched_intent_stays_unknown_until_explicit_resolution (test_core.PolicyTests.test_undispatched_intent_stays_unknown_until_explicit_resolution) ... ok
+test_unknown_status_is_never_refreshed_by_a_cached_read (test_core.PolicyTests.test_unknown_status_is_never_refreshed_by_a_cached_read) ... ok
+test_conflicts_require_unique_reciprocal_available_units (test_core.ProfileTests.test_conflicts_require_unique_reciprocal_available_units) ... ok
+test_json_rejects_duplicate_fields_and_nonfinite_numbers (test_core.ProfileTests.test_json_rejects_duplicate_fields_and_nonfinite_numbers) ... ok
+test_rejects_shell_like_paths_reserved_environment_and_bad_deadlines (test_core.ProfileTests.test_rejects_shell_like_paths_reserved_environment_and_bad_deadlines) ... ok
+test_independent_updates_metadata_reset_and_source_loss (test_delivery.DeliveryTests.test_independent_updates_metadata_reset_and_source_loss) ... ok
+test_bounded_output_and_invalid_values_fail_closed (test_fiducials.FiducialTests.test_bounded_output_and_invalid_values_fail_closed) ... ERROR
+test_explicit_mount_clock_and_record_schema_are_required (test_fiducials.FiducialTests.test_explicit_mount_clock_and_record_schema_are_required) ... ERROR
+test_invalid_pose_is_metadata_only_and_empty_is_a_distinct_sample (test_fiducials.FiducialTests.test_invalid_pose_is_metadata_only_and_empty_is_a_distinct_sample) ... ERROR
+test_metadata_duplicates_full_pose_and_acquisition_stamp (test_fiducials.FiducialTests.test_metadata_duplicates_full_pose_and_acquisition_stamp) ... ERROR
+test_diagnostics_without_a_cumulative_counter_do_not_invent_progress (test_imu.ImuTests.test_diagnostics_without_a_cumulative_counter_do_not_invent_progress) ... ok
+test_invalid_quaternion_frame_stamp_numeric_and_byte_bounds_fail_closed (test_imu.ImuTests.test_invalid_quaternion_frame_stamp_numeric_and_byte_bounds_fail_closed) ... ok
+test_partial_fields_clear_values_instead_of_reusing_or_showing_zero_orientation (test_imu.ImuTests.test_partial_fields_clear_values_instead_of_reusing_or_showing_zero_orientation) ... ok
+test_sample_time_is_lossless_receipt_estimate_and_quaternion_remains_raw (test_imu.ImuTests.test_sample_time_is_lossless_receipt_estimate_and_quaternion_remains_raw) ... ok
+test_schema_requires_explicit_meaning_and_bounds_the_imu_rate (test_imu.ImuTests.test_schema_requires_explicit_meaning_and_bounds_the_imu_rate) ... ok
+test_large_messages_stay_within_response_budget (test_journal.JournalTests.test_large_messages_stay_within_response_budget) ... ok
+test_missing_cursor_is_reported_as_gap (test_journal.JournalTests.test_missing_cursor_is_reported_as_gap) ... ok
+test_bad_metadata_frame_and_output_size_fail_closed (test_lidar.LidarTests.test_bad_metadata_frame_and_output_size_fail_closed) ... ERROR
+test_downsampling_covers_entire_scan_and_bounds_json (test_lidar.LidarTests.test_downsampling_covers_entire_scan_and_bounds_json) ... ERROR
+test_invalid_ranges_are_omitted_and_fresh_empty_is_explicit (test_lidar.LidarTests.test_invalid_ranges_are_omitted_and_fresh_empty_is_explicit) ... ERROR
+test_mount_preserves_xyz_ray_indices_and_scan_time_meaning (test_lidar.LidarTests.test_mount_preserves_xyz_ray_indices_and_scan_time_meaning) ... ERROR
+test_profile_requires_explicit_valid_mount_and_clock (test_lidar.LidarTests.test_profile_requires_explicit_valid_mount_and_clock) ... ERROR
+test_bad_frame_nonfinite_data_zero_stamp_and_output_limit_fail_closed (test_observations.ObservationTests.test_bad_frame_nonfinite_data_zero_stamp_and_output_limit_fail_closed) ... ERROR
+test_diagnostic_selection_duplicate_rejection_and_key_allowlist (test_observations.ObservationTests.test_diagnostic_selection_duplicate_rejection_and_key_allowlist) ... ERROR
+test_lossless_acquisition_xyz_and_explicit_first_twenty_limit (test_observations.ObservationTests.test_lossless_acquisition_xyz_and_explicit_first_twenty_limit) ... ERROR
+test_profile_bounds_and_supported_clock_are_explicit (test_observations.ObservationTests.test_profile_bounds_and_supported_clock_are_explicit) ... ERROR
+test_acceptance_and_readback_are_separate_durable_observations (test_parameters.ParameterTests.test_acceptance_and_readback_are_separate_durable_observations) ... ok
+test_descriptors_preserve_ranges_and_read_only_information (test_parameters.ParameterTests.test_descriptors_preserve_ranges_and_read_only_information) ... ok
+test_lost_readback_does_not_erase_known_provider_acceptance (test_parameters.ParameterTests.test_lost_readback_does_not_erase_known_provider_acceptance) ... ok
+test_manager_restart_does_not_replay_mutations_or_pending_readback (test_parameters.ParameterTests.test_manager_restart_does_not_replay_mutations_or_pending_readback) ... ok
+test_mutation_timeout_blocks_other_ros_commands_until_acknowledged (test_parameters.ParameterTests.test_mutation_timeout_blocks_other_ros_commands_until_acknowledged) ... ok
+test_mutations_deduplicate_and_invalidate_other_client_snapshots (test_parameters.ParameterTests.test_mutations_deduplicate_and_invalidate_other_client_snapshots) ... ok
+test_parameter_types_are_lossless_and_bounded (test_parameters.ParameterTests.test_parameter_types_are_lossless_and_bounded) ... ok
+test_profile_requires_explicit_bounded_parameter_permissions (test_parameters.ParameterTests.test_profile_requires_explicit_bounded_parameter_permissions) ... ok
+test_read_reply_for_an_old_run_is_not_presented_as_current (test_parameters.ParameterTests.test_read_reply_for_an_old_run_is_not_presented_as_current) ... ok
+test_reads_coalesce_and_age_without_mutation_history (test_parameters.ParameterTests.test_reads_coalesce_and_age_without_mutation_history) ... ok
+test_stop_before_acknowledgement_preserves_received_provider_result (test_parameters.ParameterTests.test_stop_before_acknowledgement_preserves_received_provider_result) ... ok
+test_twelve_parameter_groups_preserve_per_group_bounds (test_parameters.ParameterTests.test_twelve_parameter_groups_preserve_per_group_bounds) ... ok
+test_write_requires_fresh_snapshot_exact_type_and_permission (test_parameters.ParameterTests.test_write_requires_fresh_snapshot_exact_type_and_permission) ... ok
+test_shared_upstream_release_reconnect_history_and_staleness (test_resources.FanoutTests.test_shared_upstream_release_reconnect_history_and_staleness) ... ok
+test_one_sampler_for_five_viewers_stops_and_resets_on_resume (test_resources.MonitorTests.test_one_sampler_for_five_viewers_stops_and_resets_on_resume) ... ok
+test_retention_expiry_size_and_restart_identity (test_resources.MonitorTests.test_retention_expiry_size_and_restart_identity) ... ok
+test_bounded_traversal_and_gpu_partial_values (test_resources.SamplerTests.test_bounded_traversal_and_gpu_partial_values) ... ok
+test_host_and_descendant_accounting_with_distinct_cpu_denominators (test_resources.SamplerTests.test_host_and_descendant_accounting_with_distinct_cpu_denominators) ... ok
+test_resets_missing_sources_and_replaced_runs_do_not_invent_zero (test_resources.SamplerTests.test_resets_missing_sources_and_replaced_runs_do_not_invent_zero) ... ok
+test_stale_or_unowned_targets_and_pid_reuse_are_unavailable (test_resources.SamplerTests.test_stale_or_unowned_targets_and_pid_reuse_are_unavailable) ... ok
+test_256_kib_topic_budget_fits_snapshot_transport (test_ros.RosTests.test_256_kib_topic_budget_fits_snapshot_transport) ... ok
+test_48_topic_catalog_and_demand_are_bounded_together (test_ros.RosTests.test_48_topic_catalog_and_demand_are_bounded_together) ... ok
+test_estimated_sample_time_expires_at_the_boundary_despite_fresh_receipts (test_ros.RosTests.test_estimated_sample_time_expires_at_the_boundary_despite_fresh_receipts) ... ok
+test_ipc_response_boundary_includes_envelope_and_newline (test_ros.RosTests.test_ipc_response_boundary_includes_envelope_and_newline) ... ok
+test_lossless_scalar_encoding_and_strict_request_types (test_ros.RosTests.test_lossless_scalar_encoding_and_strict_request_types) ... ok
+test_manager_and_worker_recovery_preserve_unknown_intent (test_ros.RosTests.test_manager_and_worker_recovery_preserve_unknown_intent) ... ok
+test_profile_rejects_unbounded_or_unmapped_capabilities (test_ros.RosTests.test_profile_rejects_unbounded_or_unmapped_capabilities) ... ok
+test_provider_refusal_is_a_correlated_complete_response (test_ros.RosTests.test_provider_refusal_is_a_correlated_complete_response) ... ok
+test_receipt_cannot_refresh_old_acquisition_and_progress_ages_independently (test_ros.RosTests.test_receipt_cannot_refresh_old_acquisition_and_progress_ages_independently) ... ok
+test_service_discovery_is_separate_from_interface_readiness (test_ros.RosTests.test_service_discovery_is_separate_from_interface_readiness) ... ok
+test_service_intent_deduplicates_and_rejects_stale_generation (test_ros.RosTests.test_service_intent_deduplicates_and_rejects_stale_generation) ... ok
+test_stop_invalidates_topics_and_pending_service_results (test_ros.RosTests.test_stop_invalidates_topics_and_pending_service_results) ... ok
+test_timeout_requires_local_acknowledgement_and_never_replays (test_ros.RosTests.test_timeout_requires_local_acknowledgement_and_never_replays) ... ok
+test_updates_coalesce_each_topic_without_repeating_metadata_or_catalogs (test_ros.RosTests.test_updates_coalesce_each_topic_without_repeating_metadata_or_catalogs) ... ok
+test_watchers_share_demand_and_last_removal_discards_samples (test_ros.RosTests.test_watchers_share_demand_and_last_removal_discards_samples) ... ok
+test_worker_authorization_reaudits_ownership_and_expiry (test_ros.RosTests.test_worker_authorization_reaudits_ownership_and_expiry) ... ok
+test_dimensions_padding_supported_formats_and_lossless_stamp (test_snapshots.ImageTests.test_dimensions_padding_supported_formats_and_lossless_stamp) ... ok
+test_invalid_frame_time_format_stride_and_output_budget_fail_closed (test_snapshots.ImageTests.test_invalid_frame_time_format_stride_and_output_budget_fail_closed) ... ok
+test_capture_shares_five_waiters_and_cancels_last_consumer (test_snapshots.SnapshotTests.test_capture_shares_five_waiters_and_cancels_last_consumer) ... ok
+test_default_and_declared_launch_survive_manager_recovery (test_snapshots.SnapshotTests.test_default_and_declared_launch_survive_manager_recovery) ... ok
+test_results_age_and_are_invalidated_by_stop_or_generation (test_snapshots.SnapshotTests.test_results_age_and_are_invalidated_by_stop_or_generation) ... ok
+test_unknown_modes_and_nonstart_modes_never_dispatch (test_snapshots.SnapshotTests.test_unknown_modes_and_nonstart_modes_never_dispatch) ... ok
+test_hash_sessions_expiry_rotation_and_rate_limit (test_web.AuthTests.test_hash_sessions_expiry_rotation_and_rate_limit) ... ok
+test_action_commands_require_auth_and_expose_only_declared_targets (test_web.WebTests.test_action_commands_require_auth_and_expose_only_declared_targets) ... Executing <Task pending name='Task-88' coro=<WebTests.asyncSetUp() running at /tmp/robot-runtime-clean-e7b45109c263/source/tests/test_web.py:66> cb=[_run_until_complete_cb() at /usr/lib/python3.12/asyncio/base_events.py:182] created at /usr/lib/python3.12/asyncio/runners.py:100> took 0.278 seconds
+ok
+test_browser_client_modules_are_served_without_changing_the_page (test_web.WebTests.test_browser_client_modules_are_served_without_changing_the_page) ... Executing <Task pending name='Task-121' coro=<WebTests.asyncSetUp() running at /tmp/robot-runtime-clean-e7b45109c263/source/tests/test_web.py:66> cb=[_run_until_complete_cb() at /usr/lib/python3.12/asyncio/base_events.py:182] created at /usr/lib/python3.12/asyncio/runners.py:100> took 0.276 seconds
+ok
+test_every_script_referenced_by_the_page_is_served (test_web.WebTests.test_every_script_referenced_by_the_page_is_served) ... Executing <Task pending name='Task-139' coro=<WebTests.asyncSetUp() running at /tmp/robot-runtime-clean-e7b45109c263/source/tests/test_web.py:66> cb=[_run_until_complete_cb() at /usr/lib/python3.12/asyncio/base_events.py:182] created at /usr/lib/python3.12/asyncio/runners.py:100> took 0.278 seconds
+ok
+test_host_origin_and_csrf_fail_before_dispatch (test_web.WebTests.test_host_origin_and_csrf_fail_before_dispatch) ... Executing <Task pending name='Task-162' coro=<WebTests.asyncSetUp() running at /tmp/robot-runtime-clean-e7b45109c263/source/tests/test_web.py:66> cb=[_run_until_complete_cb() at /usr/lib/python3.12/asyncio/base_events.py:182] created at /usr/lib/python3.12/asyncio/runners.py:100> took 0.278 seconds
+ok
+test_login_cookie_logout_revocation_and_private_logs (test_web.WebTests.test_login_cookie_logout_revocation_and_private_logs) ... Executing <Task pending name='Task-182' coro=<WebTests.asyncSetUp() running at /tmp/robot-runtime-clean-e7b45109c263/source/tests/test_web.py:66> cb=[_run_until_complete_cb() at /usr/lib/python3.12/asyncio/base_events.py:182] created at /usr/lib/python3.12/asyncio/runners.py:100> took 0.278 seconds
+ok
+test_multiplex_selection_baseline_updates_and_cleanup (test_web.WebTests.test_multiplex_selection_baseline_updates_and_cleanup) ... Executing <Task pending name='Task-201' coro=<WebTests.asyncSetUp() running at /tmp/robot-runtime-clean-e7b45109c263/source/tests/test_web.py:66> cb=[_run_until_complete_cb() at /usr/lib/python3.12/asyncio/base_events.py:182] created at /usr/lib/python3.12/asyncio/runners.py:100> took 0.283 seconds
+ok
+test_no_profile_shell_or_local_resolution_route (test_web.WebTests.test_no_profile_shell_or_local_resolution_route) ... Executing <Task pending name='Task-220' coro=<WebTests.asyncSetUp() running at /tmp/robot-runtime-clean-e7b45109c263/source/tests/test_web.py:66> cb=[_run_until_complete_cb() at /usr/lib/python3.12/asyncio/base_events.py:182] created at /usr/lib/python3.12/asyncio/runners.py:100> took 0.280 seconds
+ok
+test_observation_stream_closes_on_application_shutdown (test_web.WebTests.test_observation_stream_closes_on_application_shutdown) ... Executing <Task pending name='Task-236' coro=<WebTests.asyncSetUp() running at /tmp/robot-runtime-clean-e7b45109c263/source/tests/test_web.py:66> cb=[_run_until_complete_cb() at /usr/lib/python3.12/asyncio/base_events.py:182] created at /usr/lib/python3.12/asyncio/runners.py:100> took 0.274 seconds
+ok
+test_public_view_has_no_command_authority (test_web.WebTests.test_public_view_has_no_command_authority) ... Executing <Task pending name='Task-249' coro=<WebTests.asyncSetUp() running at /tmp/robot-runtime-clean-e7b45109c263/source/tests/test_web.py:66> cb=[_run_until_complete_cb() at /usr/lib/python3.12/asyncio/base_events.py:182] created at /usr/lib/python3.12/asyncio/runners.py:100> took 0.274 seconds
+ok
+test_resource_cached_view_does_not_activate_monitoring (test_web.WebTests.test_resource_cached_view_does_not_activate_monitoring) ... Executing <Task pending name='Task-264' coro=<WebTests.asyncSetUp() running at /tmp/robot-runtime-clean-e7b45109c263/source/tests/test_web.py:66> cb=[_run_until_complete_cb() at /usr/lib/python3.12/asyncio/base_events.py:182] created at /usr/lib/python3.12/asyncio/runners.py:100> took 0.273 seconds
+ok
+test_ros_commands_use_auth_csrf_and_capability_only (test_web.WebTests.test_ros_commands_use_auth_csrf_and_capability_only) ... Executing <Task pending name='Task-278' coro=<WebTests.asyncSetUp() running at /tmp/robot-runtime-clean-e7b45109c263/source/tests/test_web.py:66> cb=[_run_until_complete_cb() at /usr/lib/python3.12/asyncio/base_events.py:182] created at /usr/lib/python3.12/asyncio/runners.py:100> took 0.274 seconds
+ok
+test_ros_results_require_authentication_and_no_recovery_route_exists (test_web.WebTests.test_ros_results_require_authentication_and_no_recovery_route_exists) ... Executing <Task pending name='Task-298' coro=<WebTests.asyncSetUp() running at /tmp/robot-runtime-clean-e7b45109c263/source/tests/test_web.py:66> cb=[_run_until_complete_cb() at /usr/lib/python3.12/asyncio/base_events.py:182] created at /usr/lib/python3.12/asyncio/runners.py:100> took 0.274 seconds
+ok
+test_ros_stream_paces_selected_topics_and_coalesces_latest_state (test_web.WebTests.test_ros_stream_paces_selected_topics_and_coalesces_latest_state) ... Executing <Task pending name='Task-313' coro=<WebTests.asyncSetUp() running at /tmp/robot-runtime-clean-e7b45109c263/source/tests/test_web.py:66> cb=[_run_until_complete_cb() at /usr/lib/python3.12/asyncio/base_events.py:182] created at /usr/lib/python3.12/asyncio/runners.py:100> took 0.275 seconds
+ok
+test_topic_command_uses_fixed_choice_authentication_and_private_result (test_web.WebTests.test_topic_command_uses_fixed_choice_authentication_and_private_result) ... Executing <Task pending name='Task-327' coro=<WebTests.asyncSetUp() running at /tmp/robot-runtime-clean-e7b45109c263/source/tests/test_web.py:66> cb=[_run_until_complete_cb() at /usr/lib/python3.12/asyncio/base_events.py:182] created at /usr/lib/python3.12/asyncio/runners.py:100> took 0.311 seconds
+ok
+
+======================================================================
+ERROR: test_bounded_output_and_invalid_values_fail_closed (test_fiducials.FiducialTests.test_bounded_output_and_invalid_values_fail_closed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/test_fiducials.py", line 21, in setUp
+    self.profile = make_profile(Path(temporary.name), "test")
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/fiducials_fixture.py", line 16, in make_profile
+    profile = spatial_profile(area, token)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/lidar_fixture.py", line 16, in make_profile
+    profile = cones_profile(area, token)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/observations_fixture.py", line 16, in make_profile
+    raise RuntimeError("Build tests/interfaces into ROOT/test-overlay first; see tests/README.md")
+RuntimeError: Build tests/interfaces into ROOT/test-overlay first; see tests/README.md
+
+======================================================================
+ERROR: test_explicit_mount_clock_and_record_schema_are_required (test_fiducials.FiducialTests.test_explicit_mount_clock_and_record_schema_are_required)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/test_fiducials.py", line 21, in setUp
+    self.profile = make_profile(Path(temporary.name), "test")
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/fiducials_fixture.py", line 16, in make_profile
+    profile = spatial_profile(area, token)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/lidar_fixture.py", line 16, in make_profile
+    profile = cones_profile(area, token)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/observations_fixture.py", line 16, in make_profile
+    raise RuntimeError("Build tests/interfaces into ROOT/test-overlay first; see tests/README.md")
+RuntimeError: Build tests/interfaces into ROOT/test-overlay first; see tests/README.md
+
+======================================================================
+ERROR: test_invalid_pose_is_metadata_only_and_empty_is_a_distinct_sample (test_fiducials.FiducialTests.test_invalid_pose_is_metadata_only_and_empty_is_a_distinct_sample)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/test_fiducials.py", line 21, in setUp
+    self.profile = make_profile(Path(temporary.name), "test")
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/fiducials_fixture.py", line 16, in make_profile
+    profile = spatial_profile(area, token)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/lidar_fixture.py", line 16, in make_profile
+    profile = cones_profile(area, token)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/observations_fixture.py", line 16, in make_profile
+    raise RuntimeError("Build tests/interfaces into ROOT/test-overlay first; see tests/README.md")
+RuntimeError: Build tests/interfaces into ROOT/test-overlay first; see tests/README.md
+
+======================================================================
+ERROR: test_metadata_duplicates_full_pose_and_acquisition_stamp (test_fiducials.FiducialTests.test_metadata_duplicates_full_pose_and_acquisition_stamp)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/test_fiducials.py", line 21, in setUp
+    self.profile = make_profile(Path(temporary.name), "test")
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/fiducials_fixture.py", line 16, in make_profile
+    profile = spatial_profile(area, token)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/lidar_fixture.py", line 16, in make_profile
+    profile = cones_profile(area, token)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/observations_fixture.py", line 16, in make_profile
+    raise RuntimeError("Build tests/interfaces into ROOT/test-overlay first; see tests/README.md")
+RuntimeError: Build tests/interfaces into ROOT/test-overlay first; see tests/README.md
+
+======================================================================
+ERROR: test_bad_metadata_frame_and_output_size_fail_closed (test_lidar.LidarTests.test_bad_metadata_frame_and_output_size_fail_closed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/test_lidar.py", line 21, in setUp
+    self.profile = make_profile(Path(temporary.name), "test")
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/lidar_fixture.py", line 16, in make_profile
+    profile = cones_profile(area, token)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/observations_fixture.py", line 16, in make_profile
+    raise RuntimeError("Build tests/interfaces into ROOT/test-overlay first; see tests/README.md")
+RuntimeError: Build tests/interfaces into ROOT/test-overlay first; see tests/README.md
+
+======================================================================
+ERROR: test_downsampling_covers_entire_scan_and_bounds_json (test_lidar.LidarTests.test_downsampling_covers_entire_scan_and_bounds_json)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/test_lidar.py", line 21, in setUp
+    self.profile = make_profile(Path(temporary.name), "test")
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/lidar_fixture.py", line 16, in make_profile
+    profile = cones_profile(area, token)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/observations_fixture.py", line 16, in make_profile
+    raise RuntimeError("Build tests/interfaces into ROOT/test-overlay first; see tests/README.md")
+RuntimeError: Build tests/interfaces into ROOT/test-overlay first; see tests/README.md
+
+======================================================================
+ERROR: test_invalid_ranges_are_omitted_and_fresh_empty_is_explicit (test_lidar.LidarTests.test_invalid_ranges_are_omitted_and_fresh_empty_is_explicit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/test_lidar.py", line 21, in setUp
+    self.profile = make_profile(Path(temporary.name), "test")
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/lidar_fixture.py", line 16, in make_profile
+    profile = cones_profile(area, token)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/observations_fixture.py", line 16, in make_profile
+    raise RuntimeError("Build tests/interfaces into ROOT/test-overlay first; see tests/README.md")
+RuntimeError: Build tests/interfaces into ROOT/test-overlay first; see tests/README.md
+
+======================================================================
+ERROR: test_mount_preserves_xyz_ray_indices_and_scan_time_meaning (test_lidar.LidarTests.test_mount_preserves_xyz_ray_indices_and_scan_time_meaning)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/test_lidar.py", line 21, in setUp
+    self.profile = make_profile(Path(temporary.name), "test")
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/lidar_fixture.py", line 16, in make_profile
+    profile = cones_profile(area, token)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/observations_fixture.py", line 16, in make_profile
+    raise RuntimeError("Build tests/interfaces into ROOT/test-overlay first; see tests/README.md")
+RuntimeError: Build tests/interfaces into ROOT/test-overlay first; see tests/README.md
+
+======================================================================
+ERROR: test_profile_requires_explicit_valid_mount_and_clock (test_lidar.LidarTests.test_profile_requires_explicit_valid_mount_and_clock)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/test_lidar.py", line 21, in setUp
+    self.profile = make_profile(Path(temporary.name), "test")
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/lidar_fixture.py", line 16, in make_profile
+    profile = cones_profile(area, token)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/observations_fixture.py", line 16, in make_profile
+    raise RuntimeError("Build tests/interfaces into ROOT/test-overlay first; see tests/README.md")
+RuntimeError: Build tests/interfaces into ROOT/test-overlay first; see tests/README.md
+
+======================================================================
+ERROR: test_bad_frame_nonfinite_data_zero_stamp_and_output_limit_fail_closed (test_observations.ObservationTests.test_bad_frame_nonfinite_data_zero_stamp_and_output_limit_fail_closed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/test_observations.py", line 20, in setUp
+    self.config = make_profile(Path(self.temporary.name), "unit_test")
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/observations_fixture.py", line 16, in make_profile
+    raise RuntimeError("Build tests/interfaces into ROOT/test-overlay first; see tests/README.md")
+RuntimeError: Build tests/interfaces into ROOT/test-overlay first; see tests/README.md
+
+======================================================================
+ERROR: test_diagnostic_selection_duplicate_rejection_and_key_allowlist (test_observations.ObservationTests.test_diagnostic_selection_duplicate_rejection_and_key_allowlist)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/test_observations.py", line 20, in setUp
+    self.config = make_profile(Path(self.temporary.name), "unit_test")
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/observations_fixture.py", line 16, in make_profile
+    raise RuntimeError("Build tests/interfaces into ROOT/test-overlay first; see tests/README.md")
+RuntimeError: Build tests/interfaces into ROOT/test-overlay first; see tests/README.md
+
+======================================================================
+ERROR: test_lossless_acquisition_xyz_and_explicit_first_twenty_limit (test_observations.ObservationTests.test_lossless_acquisition_xyz_and_explicit_first_twenty_limit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/test_observations.py", line 20, in setUp
+    self.config = make_profile(Path(self.temporary.name), "unit_test")
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/observations_fixture.py", line 16, in make_profile
+    raise RuntimeError("Build tests/interfaces into ROOT/test-overlay first; see tests/README.md")
+RuntimeError: Build tests/interfaces into ROOT/test-overlay first; see tests/README.md
+
+======================================================================
+ERROR: test_profile_bounds_and_supported_clock_are_explicit (test_observations.ObservationTests.test_profile_bounds_and_supported_clock_are_explicit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/test_observations.py", line 20, in setUp
+    self.config = make_profile(Path(self.temporary.name), "unit_test")
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/robot-runtime-clean-e7b45109c263/source/tests/observations_fixture.py", line 16, in make_profile
+    raise RuntimeError("Build tests/interfaces into ROOT/test-overlay first; see tests/README.md")
+RuntimeError: Build tests/interfaces into ROOT/test-overlay first; see tests/README.md
+
+----------------------------------------------------------------------
+Ran 135 tests in 10.002s
+
+FAILED (errors=13)

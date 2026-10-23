@@ -1,0 +1,22 @@
+/* SPDX-License-Identifier: MIT
+ * Copyright (c) 2026 Paul N. Beuchat */
+header {padding-top: 24px; padding-bottom: 18px;}
+header h1 {font-size: 28px;}
+nav {margin-bottom: 14px;}
+.av-access {display: flex; gap: 10px 18px; align-items: center; flex-wrap: wrap; margin-bottom: 12px;}
+.av-access form, #sign-in {display: flex; align-items: center; gap: 9px; flex-wrap: wrap;}
+#sign-in[hidden] {display: none;}
+#message:empty {display: none;}
+.av-runtime {margin-bottom: 18px; font-size: 13px;}
+.av-runtime summary {cursor: pointer;}
+.av-columns {display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px;}
+.av-columns > section > label {display: block; margin: 8px 0;}
+.av-columns > section > p {font-size: 13px; margin: 9px 0;}
+.av-columns .robot-widget {margin-bottom: 14px; padding: 16px;}
+.av-columns .robot-receipt {margin-top: 12px; padding-top: 12px;}
+.av-columns .robot-metrics > div {padding: 10px;}
+.av-columns .robot-metrics b {font-size: 18px;}
+body[data-combined=true] .robot-gamepad .gamepad {max-height: 180px;}
+@media (min-width: 980px) {
+  body[data-combined=true] .av-columns {grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);}
+}

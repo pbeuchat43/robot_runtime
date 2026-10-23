@@ -1,0 +1,57 @@
+{
+  "common": {
+    "width": 640,
+    "height": 360,
+    "mode": "adaptive",
+    "keyframe_interval": 1.0,
+    "diagnostics": "minimal",
+    "idle_release_s": 5.0,
+    "input_max_age_ms": 250.0,
+    "input_timeout_ms": 250.0,
+    "input_rate_hz": 20.0,
+    "input_receive_limit_hz": 100.0,
+    "input_log_rate_hz": 10.0,
+    "telemetry_interval_ms": 1000,
+    "host_log_interval_ms": 1000,
+    "clock_sync_interval_ms": 15000,
+    "clock_probe_count": 5,
+    "clock_valid_ms": 30000,
+    "clock_max_uncertainty_ms": 50.0,
+    "health_check_interval_ms": 100,
+    "placeholder_interval_ms": 500,
+    "camera_stall_timeout_s": 3.0,
+    "camera_retry_interval_s": 1.0,
+    "discovery_timeout_s": 5.0,
+    "log_queue_size": 128,
+    "ros_topic": "/car/camera/rgb/image_rect",
+    "ros_domain_id": null,
+    "ros_use_sim_time": false,
+    "ros_clock_tolerance_ms": 20.0,
+    "capture_mode": null,
+    "native_format_preference": ["NV12", "YUYV", "UYVY", "RGB3", "BGR3", "MJPG", "JPEG"]
+  },
+  "profiles": {
+    "teleop": {
+      "source": "auto",
+      "fps": 30,
+      "bitrate": 1500000,
+      "min_bitrate": 150000,
+      "max_bitrate": 2500000,
+      "stamp": true,
+      "max_source_age_ms": 150.0,
+      "video_max_age_ms": 300.0,
+      "video_stall_ms": 300.0
+    },
+    "observer": {
+      "source": "ros",
+      "fps": 5,
+      "bitrate": 400000,
+      "min_bitrate": 100000,
+      "max_bitrate": 600000,
+      "stamp": false,
+      "max_source_age_ms": 500.0,
+      "video_max_age_ms": 1000.0,
+      "video_stall_ms": 750.0
+    }
+  }
+}

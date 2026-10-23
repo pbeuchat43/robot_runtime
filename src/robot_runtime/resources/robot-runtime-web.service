@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Paul N. Beuchat
+# Example user service. Replace the origin and review paths before enabling it.
+[Unit]
+Description=Robot runtime browser interface
+After=robot-runtime-manager.service
+Wants=robot-runtime-manager.service
+
+[Service]
+Type=simple
+ExecStart=%h/.local/share/robot-runtime/venv/bin/robot-runtime-web --state %h/.local/state/robot_runtime --origin https://robot.example:8443 --bind 0.0.0.0 --port 8443 --credential %h/.config/robot_runtime/credential.json --cert %h/.config/robot_runtime/tls.crt --key %h/.config/robot_runtime/tls.key
+Restart=on-failure
+RestartSec=2
+UMask=0077
+KillMode=control-group
+SendSIGKILL=no
+TimeoutStopSec=15
+
+[Install]
+WantedBy=default.target

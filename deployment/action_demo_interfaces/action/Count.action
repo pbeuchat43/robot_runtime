@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Paul N. Beuchat
+int32 steps
+float64 period_seconds
+bool abort_at_end
+---
+bool success
+int32 completed
+string message
+---
+int32 completed
+int32 total
+string message

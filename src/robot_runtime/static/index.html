@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Robot runtime</title>
+  <link rel="stylesheet" href="/assets/style.css">
+  <script defer src="/assets/app.js"></script>
+  <script defer src="/assets/resources.js"></script>
+  <script defer src="/assets/actions.js"></script>
+  <script defer src="/assets/imu.js"></script>
+  <script defer src="/assets/spatial3d.js"></script>
+  <script defer src="/assets/spatial.js"></script>
+  <script defer src="/assets/observations.js"></script>
+  <script defer src="/assets/ros.js"></script>
+  <script defer src="/assets/parameters.js"></script>
+  <script defer src="/assets/snapshots.js"></script>
+</head>
+<body>
+  <header>
+    <div><p class="eyebrow">ROBOT TOOLS</p><h1>Robot runtime</h1><p id="robot">Connecting to the robot…</p></div>
+    <div class="connection"><span id="connection" class="badge">Connecting</span><span id="age">Waiting for observations</span></div>
+  </header>
+  <main>
+    <nav aria-label="Runtime views"><a href="/autonomous">Autonomous monitor</a> · <a href="/outreach">Outreach monitor</a> · <a href="/camera-gamepad">Camera and gamepad</a></nav>
+    <section class="access" aria-labelledby="access-title">
+      <div><h2 id="access-title">Command access</h2><p id="access-status">Viewing is public. Unlock to start or stop a workload.</p></div>
+      <form id="unlock"><label class="sr-only" for="passphrase">Robot passphrase</label><input id="passphrase" type="password" autocomplete="current-password" placeholder="Robot passphrase" maxlength="256" required><button type="submit">Unlock commands</button></form>
+      <button id="lock" class="secondary" hidden>Lock commands</button>
+    </section>
+    <div id="notice" role="status" aria-live="polite"></div>
+    <section aria-labelledby="units-title">
+      <div class="section-title"><h2 id="units-title">Workloads</h2><p>Process state is shown here. Sensor data, health and freshness appear in live observations.</p></div>
+      <div class="table-scroll"><table><thead><tr><th>Workload</th><th>State</th><th>Run</th><th>Actions</th></tr></thead><tbody id="units"><tr><td colspan="4">Waiting for the manager…</td></tr></tbody></table></div>
+    </section>
+    <details id="resource-panel">
+      <summary>Resource monitoring</summary>
+      <p>Opening this panel collects shared measurements once a second. Closing it or hiding the page releases this viewer. History stays in memory for up to 10 minutes.</p>
+      <p id="resource-status" role="status">Monitoring paused</p>
+      <div id="resource-values" class="resource-values"></div>
+      <div id="resource-charts" class="resource-charts"></div>
+      <p class="ros-note">Host CPU is a percentage of all cores; workload CPU uses 100% for one core. RSS sums process resident memory, including shared pages. Charged memory also includes cgroup cache and kernel memory. GPU activity is for the whole device.</p>
+      <div class="table-scroll"><table><thead><tr><th>Workload / state</th><th>CPU</th><th>RSS</th><th>Charged memory</th></tr></thead><tbody id="resource-units"></tbody></table></div>
+    </details>
+    <section id="log-panel" hidden aria-labelledby="log-title">
+      <div class="section-title"><div><h2 id="log-title">Logs</h2><p id="log-note"></p></div><div class="buttons"><label><input type="checkbox" id="follow-logs"> Follow</label><button id="refresh-logs" class="secondary">Refresh</button><button id="close-logs" class="secondary">Close</button></div></div>
+      <pre id="logs" tabindex="0"></pre>
+    </section>
+    <section id="ros-panel" hidden aria-labelledby="ros-title">
+      <div class="section-title"><div><h2 id="ros-title">Live observations</h2><p id="ros-availability">Waiting for capability information.</p></div><button id="ros-observe" class="secondary">Observe topics</button></div>
+      <p class="ros-note">Choose topics to observe. Pausing or hiding this page releases its topic demand. Observing never starts a workload.</p>
+      <div id="ros-spatial"></div>
+      <div id="ros-topics" class="ros-grid"></div>
+      <div id="ros-services-heading" class="section-title"><div><h2>ROS requests</h2><p>Requests target the current run. Topic publication and provider state changes are separate observations.</p></div></div>
+      <div id="ros-services" class="ros-grid"></div>
+    </section>
+    <section id="action-panel" hidden aria-labelledby="action-title">
+      <div class="section-title"><div><h2 id="action-title">Actions</h2><p>Send a goal, follow its progress, or request cancellation. Closing this page leaves accepted goals running.</p></div></div>
+      <p id="action-availability" class="ros-note">Waiting for action capabilities.</p>
+      <div id="action-groups" class="ros-grid"></div>
+    </section>
+    <section id="snapshot-panel" hidden aria-labelledby="snapshot-title">
+      <div class="section-title"><div><h2 id="snapshot-title">Image snapshots</h2><p>Take one annotated image from an image-enabled run. Images do not refresh automatically.</p></div></div>
+      <div id="snapshot-groups" class="ros-grid"></div>
+    </section>
+    <section id="parameter-panel" hidden aria-labelledby="parameter-title">
+      <div class="section-title"><div><h2 id="parameter-title">Live parameters</h2><p>Read permitted values from a running node. Edits affect this run only; startup settings are not saved.</p></div></div>
+      <div id="parameter-groups" class="parameter-groups"></div>
+    </section>
+    <details><summary>Connection details</summary><pre id="details">No observations yet.</pre></details>
+  </main>
+  <footer>Explicit starts. Graceful stops. Commands are never replayed after a disconnection.</footer>
+</body>
+</html>

@@ -1,0 +1,273 @@
+{
+  "token": "d52a767eb7",
+  "checks": [
+    {
+      "check": "public_status_cannot_command",
+      "passed": true
+    },
+    {
+      "check": "https_cookie_origin_host_and_csrf_enforced",
+      "passed": true
+    },
+    {
+      "check": "native_detections_preserve_xyz_lossless_acquisition_time_and_requested_plot_axes",
+      "passed": true,
+      "sample": {
+        "acquisition_age_at_receipt": 0.0016634030276963115,
+        "acquisition_age_seconds": 0.0717312889997901,
+        "acquisition_timestamp": "1792799147535491945",
+        "age_seconds": 0.07006788597209379,
+        "data": {
+          "acquisition_clock": "host_system",
+          "acquisition_timestamp_ns": "1792799147535491945",
+          "acquisition_to_publish_latency_s": 0.01,
+          "axes": "x_forward_y_left_z_up",
+          "detections": [
+            {
+              "color": 0,
+              "confidence": 0.8,
+              "x": 1.0,
+              "y": 1.0,
+              "z": 0.2
+            },
+            {
+              "color": 1,
+              "confidence": 0.8,
+              "x": 2.0,
+              "y": -1.0,
+              "z": 0.3
+            }
+          ],
+          "displayed_count": 2,
+          "frame_id": "base_link",
+          "original_count": 2,
+          "truncated": false,
+          "units": "m"
+        },
+        "fields": {},
+        "fresh": true,
+        "id": "cones",
+        "label": "Synthetic cones",
+        "max_rate_hz": 10,
+        "name": "/dr_test_d52a767eb7/cones",
+        "node": "/dr_test_d52a767eb7/provider",
+        "oversize_count": 0,
+        "progress_age_seconds": null,
+        "progress_counter": null,
+        "progress_monotonic": null,
+        "projection": {
+          "acquisition_clock": "system",
+          "array_field": "detections",
+          "color_field": "color",
+          "confidence_field": "classification_confidence",
+          "forward_m": 6,
+          "frame_id": "base_link",
+          "half_width_m": 3,
+          "kind": "detections",
+          "latency_field": "acquisition_to_publish_latency_s",
+          "max_items": 20,
+          "position_field": "position"
+        },
+        "receipt_clock": "host_monotonic",
+        "received_count": 4,
+        "received_monotonic": 303939.986349112,
+        "run_id": "617cacb3e47d44fa8e103275b14837f2",
+        "sample_age_at_receipt": null,
+        "sample_age_seconds": null,
+        "sequence": 4,
+        "source_clock": "rmw_source_timestamp",
+        "source_timestamp_ns": "1792799147535708142",
+        "stale_after_seconds": 0.6,
+        "status": "current",
+        "stream_generation": "3038610a7e6b41dd9dd42968529cc05d",
+        "type": "robot_runtime_test_interfaces/msg/ConeDetections",
+        "unit_id": "idle"
+      },
+      "plotted": [
+        {
+          "x": "1",
+          "y": "1",
+          "z": "0.2",
+          "screenX": "216.66666666666669",
+          "screenY": "466.6666666666667"
+        },
+        {
+          "x": "2",
+          "y": "-1",
+          "z": "0.3",
+          "screenX": "383.3333333333333",
+          "screenY": "383.33333333333337"
+        }
+      ]
+    },
+    {
+      "check": "fresh_empty_clears_prior_cones_and_truncation_is_explicit",
+      "passed": true
+    },
+    {
+      "check": "wrong_frame_future_time_raw_limit_and_republished_old_acquisitions_never_show_live",
+      "passed": true,
+      "stale_source": {
+        "acquisition_age_at_receipt": 0.5237280139932567,
+        "acquisition_age_seconds": 0.6174012340139756,
+        "acquisition_timestamp": "1792799148565767696",
+        "age_seconds": 0.09367322002071887,
+        "data": {
+          "acquisition_clock": "host_system",
+          "acquisition_timestamp_ns": "1792799148565767696",
+          "acquisition_to_publish_latency_s": 0.01,
+          "axes": "x_forward_y_left_z_up",
+          "detections": [
+            {
+              "color": 0,
+              "confidence": 0.8,
+              "x": 1.0,
+              "y": 1.0,
+              "z": 0.2
+            },
+            {
+              "color": 1,
+              "confidence": 0.8,
+              "x": 2.0,
+              "y": -1.0,
+              "z": 0.3
+            }
+          ],
+          "displayed_count": 2,
+          "frame_id": "base_link",
+          "original_count": 2,
+          "truncated": false,
+          "units": "m"
+        },
+        "fields": {},
+        "fresh": false,
+        "id": "cones",
+        "label": "Synthetic cones",
+        "max_rate_hz": 10,
+        "name": "/dr_test_d52a767eb7/cones",
+        "node": "/dr_test_d52a767eb7/provider",
+        "oversize_count": 1,
+        "progress_age_seconds": null,
+        "progress_counter": null,
+        "progress_monotonic": null,
+        "projection": {
+          "acquisition_clock": "system",
+          "array_field": "detections",
+          "color_field": "color",
+          "confidence_field": "classification_confidence",
+          "forward_m": 6,
+          "frame_id": "base_link",
+          "half_width_m": 3,
+          "kind": "detections",
+          "latency_field": "acquisition_to_publish_latency_s",
+          "max_items": 20,
+          "position_field": "position"
+        },
+        "receipt_clock": "host_monotonic",
+        "received_count": 33,
+        "received_monotonic": 303941.538712419,
+        "run_id": "617cacb3e47d44fa8e103275b14837f2",
+        "sample_age_at_receipt": null,
+        "sample_age_seconds": null,
+        "sequence": 33,
+        "source_clock": "rmw_source_timestamp",
+        "source_timestamp_ns": "1792799149088055578",
+        "stale_after_seconds": 0.6,
+        "status": "stale_source",
+        "stream_generation": "3038610a7e6b41dd9dd42968529cc05d",
+        "type": "robot_runtime_test_interfaces/msg/ConeDetections",
+        "unit_id": "idle"
+      }
+    },
+    {
+      "check": "fresh_diagnostics_need_recent_counter_progress_and_warnings_or_missing_evidence_clear_positive_health",
+      "passed": true
+    },
+    {
+      "check": "five_https_viewers_and_browser_share_one_subscription_per_topic",
+      "passed": true
+    },
+    {
+      "check": "pause_and_simulated_hidden_page_release_demand_and_resume_new_stream_without_cached_positions",
+      "passed": true
+    },
+    {
+      "check": "stop_clears_live_geometry_and_positive_health",
+      "passed": true
+    },
+    {
+      "check": "real_chromium_unlock_start_status_logs_stop_lock",
+      "passed": true,
+      "independent_session": true,
+      "javascript_exceptions": []
+    },
+    {
+      "check": "cli_operates_with_web_down_and_workload_survives_web_exit",
+      "passed": true
+    },
+    {
+      "check": "web_restart_revokes_sessions",
+      "passed": true
+    },
+    {
+      "check": "five_concurrent_observation_connections",
+      "passed": true
+    }
+  ],
+  "origin": "https://localhost:56863",
+  "browser_profile": "/home/poi/snap/chromium/common/robot-runtime-test-d52a767eb7",
+  "tls": "Temporary certificate trusted by the API client; Chromium trusts only its SPKI for this test",
+  "passed": true,
+  "final_status": {
+    "age_seconds": 0.00010675500379875302,
+    "api_version": 1,
+    "boot_id": "3da364df-2ec6-41ad-afb0-905abaf8e9ff",
+    "config_revision": "f95367492ed291fffcb7ee73f1cacf528075ba4cb9cc8845ffc39aeae8959f55",
+    "conflicts": [],
+    "error": null,
+    "fresh": true,
+    "generation": "f4d20051664b4111a29c7c195e721172",
+    "observed_monotonic": 303948.819553161,
+    "revision": 33,
+    "robot_id": "observation-fixture",
+    "ros": {
+      "available": true,
+      "capability_revision": 10,
+      "enabled": true,
+      "error": null,
+      "generation": "51e5435a11bd4a928692cda0f84b76a6",
+      "snapshot_capture": null,
+      "subscriptions": []
+    },
+    "server_time_ms": 1792799156369,
+    "units": [
+      {
+        "available": true,
+        "blocked": false,
+        "fresh": true,
+        "label": "Synthetic observation provider",
+        "launch_mode": null,
+        "launch_modes": [],
+        "lifecycle": "exited",
+        "main_exit_code": 1,
+        "main_exit_status": 0,
+        "main_pid": 0,
+        "members": [],
+        "observation_age_seconds": 0.588711588003207,
+        "ownership": "owned",
+        "ownership_observation_age_seconds": 0.5887109480099753,
+        "public_logs": true,
+        "readiness": "unavailable",
+        "run_id": "6ed7a8ac7f5541c59ebcaab777317a7e",
+        "start_blocked_by": [],
+        "stop_phase": "complete",
+        "stop_request_id": "9780462c-71f9-4422-8d55-156d20cee82c",
+        "supervisor_result": "success",
+        "supervisor_state": "inactive",
+        "unavailable_reason": null,
+        "unit_id": "idle"
+      }
+    ]
+  },
+  "cleanup_errors": []
+}

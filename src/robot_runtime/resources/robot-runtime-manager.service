@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Paul N. Beuchat
+# Example user service. Review installation paths before enabling it.
+[Unit]
+Description=Robot runtime manager
+
+[Service]
+Type=simple
+ExecStart=%h/.local/share/robot-runtime/venv/bin/robot-runtime-manager --profile %h/.config/robot_runtime/profile.json --state %h/.local/state/robot_runtime
+Restart=on-failure
+RestartSec=2
+UMask=0077
+KillMode=control-group
+SendSIGKILL=no
+TimeoutStopSec=15
+
+[Install]
+WantedBy=default.target

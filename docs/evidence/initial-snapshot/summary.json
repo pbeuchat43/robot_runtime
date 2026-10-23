@@ -1,0 +1,386 @@
+{
+  "passed": true,
+  "package_version": "0.1.0.dev19",
+  "unit_tests": 135,
+  "integration_reports": [
+    {
+      "path": "/tmp/robot-runtime-slice-e7b45109c263/5328236335-integration.json",
+      "passed": true,
+      "checks": 10,
+      "cleanup_errors": []
+    },
+    {
+      "path": "/tmp/robot-runtime-slice-e7b45109c263/clients-27444e4fb6/report.json",
+      "passed": true,
+      "checks": 13,
+      "cleanup_errors": []
+    },
+    {
+      "path": "/tmp/robot-runtime-slice-e7b45109c263/clients-3152cef132/report.json",
+      "passed": true,
+      "checks": 13,
+      "cleanup_errors": []
+    },
+    {
+      "path": "/tmp/robot-runtime-slice-e7b45109c263/web-804a0651eb/report.json",
+      "passed": true,
+      "checks": 16,
+      "cleanup_errors": []
+    },
+    {
+      "path": "/tmp/robot-runtime-slice-e7b45109c263/web-96b85849e8/report.json",
+      "passed": true,
+      "checks": 16,
+      "cleanup_errors": []
+    },
+    {
+      "path": "/tmp/robot-runtime-ros-e7b45109c263/actions-dda452c0e2/report.json",
+      "passed": true,
+      "checks": 9,
+      "cleanup_errors": []
+    },
+    {
+      "path": "/tmp/robot-runtime-ros-e7b45109c263/commands-8f4fffa3f8/report.json",
+      "passed": true,
+      "checks": 5,
+      "cleanup_errors": []
+    },
+    {
+      "path": "/tmp/robot-runtime-ros-e7b45109c263/parameters-08a6d7f318/report.json",
+      "passed": true,
+      "checks": 10,
+      "cleanup_errors": []
+    },
+    {
+      "path": "/tmp/robot-runtime-ros-e7b45109c263/ros-8604f685d1/report.json",
+      "passed": true,
+      "checks": 12,
+      "cleanup_errors": []
+    },
+    {
+      "path": "/tmp/robot-runtime-ros-e7b45109c263/web-18e2d98d8a/report.json",
+      "passed": true,
+      "checks": 24,
+      "cleanup_errors": []
+    },
+    {
+      "path": "/tmp/robot-runtime-ros-e7b45109c263/web-5a7e5e1e8b/report.json",
+      "passed": true,
+      "checks": 10,
+      "cleanup_errors": []
+    },
+    {
+      "path": "/tmp/robot-runtime-ros-e7b45109c263/web-7ed4e55a7f/report.json",
+      "passed": true,
+      "checks": 11,
+      "cleanup_errors": []
+    },
+    {
+      "path": "/tmp/robot-runtime-ros-e7b45109c263/web-d52a767eb7/report.json",
+      "passed": true,
+      "checks": 13,
+      "cleanup_errors": []
+    },
+    {
+      "path": "/tmp/robot-runtime-ros-e7b45109c263/web-efc1d1d694/report.json",
+      "passed": true,
+      "checks": 11,
+      "cleanup_errors": []
+    },
+    {
+      "path": "/tmp/robot-runtime-ros-e7b45109c263/web-f8705cf2a6/report.json",
+      "passed": true,
+      "checks": 13,
+      "cleanup_errors": []
+    }
+  ],
+  "integration_checks": 186,
+  "candidate_units": [
+    {
+      "name": "drt-clients-27444e4fb6.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "drt-clients-3152cef132.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "drt-ui-18e2d98d8a.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "drt-ui-5a7e5e1e8b.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "drt-ui-7ed4e55a7f.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "drt-ui-804a0651eb.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "drt-ui-96b85849e8.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "drt-ui-d52a767eb7.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "drt-ui-efc1d1d694.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "drt-ui-f8705cf2a6.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-adda452c0e2-55efaff58c80480d8157f96a0bb7751a-idle-bbbbeeec47d6401fb146940a59a504d4.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-aefc1d1d694-8b7cea10fd4f4c8d9eb1af5016134589-idle-1a1425f95e6949a59b564455bb4ac487.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-aefc1d1d694-8b7cea10fd4f4c8d9eb1af5016134589-idle-85c090fd90624279a87aae09953ad554.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-c8f4fffa3f8-b02c0c82a64846dda36996409b495cad-idle-b931f8de30b54849afbcde2a3400ac7a.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-if8705cf2a6-dbe4e047c136482fb5bdb21ca464d79c-idle-5f0163f27eb04010bca9b2d8554fdb50.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-if8705cf2a6-dbe4e047c136482fb5bdb21ca464d79c-idle-67dd3fc311bd4239b5ffd5570acb45f0.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-if8705cf2a6-dbe4e047c136482fb5bdb21ca464d79c-idle-818a2497988445949c676e5b8b0acbb2.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-o5a7e5e1e8b-6a86a5e76f284e7a8ca1d7a813adf89d-idle-56001246414a4b599ca21335d2715d44.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-o5a7e5e1e8b-6a86a5e76f284e7a8ca1d7a813adf89d-idle-d666040e3539438299052fb6d0da89eb.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-o5a7e5e1e8b-6a86a5e76f284e7a8ca1d7a813adf89d-markers-9ab6433024c8479aad393b6dc24ea32f.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-o5a7e5e1e8b-6a86a5e76f284e7a8ca1d7a813adf89d-peer-9f8f90160fbc4a02bf77311f81162124.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-o7ed4e55a7f-5f6b9ca494a84d44bfe9733a38eada02-idle-980683b89dfa4c26996813539cce8730.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-o7ed4e55a7f-5f6b9ca494a84d44bfe9733a38eada02-idle-d8112f9f1e4f47c795c69c21a2f9e5f1.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-o7ed4e55a7f-5f6b9ca494a84d44bfe9733a38eada02-peer-d1330a9cc23e4307bb6d479c556c04b0.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-od52a767eb7-d69aeceaf6f944db840ee5e45d3474d1-idle-617cacb3e47d44fa8e103275b14837f2.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-od52a767eb7-d69aeceaf6f944db840ee5e45d3474d1-idle-6ed7a8ac7f5541c59ebcaab777317a7e.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-r08a6d7f318-6edd6de8210f4896bbfd434fdbac0a8a-idle-6ba733e84b5e421d88cea0e2516b7ad0.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-r18e2d98d8a-ff2d31a5e21e49c197171966b000b619-idle-6a4de60f5e5f4316b29594616c518722.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-r18e2d98d8a-ff2d31a5e21e49c197171966b000b619-idle-83c119f3dc3c421d8634c254950f6b8c.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-r8604f685d1-58ccc67dd9b64a138b37b6939bf6dbf3-idle-7408e9fe69504c368a44f56e78ef9d39.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-t5328236335-e67e6bf6fb0a4e2ca758ed816ca33ead-descendant-fafc3cf76e54410f96f6444cefc27bde.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-t5328236335-e67e6bf6fb0a4e2ca758ed816ca33ead-failure-41520418a0ec485a86438ec3f5399313.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-t5328236335-e67e6bf6fb0a4e2ca758ed816ca33ead-idle-990047dae9944bb681367d7ec09dea0c.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-t5328236335-e67e6bf6fb0a4e2ca758ed816ca33ead-idle-ef75ab8fa9774a13a7aefa2502d85560.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-t5328236335-e67e6bf6fb0a4e2ca758ed816ca33ead-peer-cd5be1f5198b4a4a89afd9d007de583a.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-t5328236335-e67e6bf6fb0a4e2ca758ed816ca33ead-slow-597d8c4b8a364f70b2a9d8e5bcd65864.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-t5328236335-e67e6bf6fb0a4e2ca758ed816ca33ead-success-41a7fccbb64c49418be9754ed15d1b47.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-w804a0651eb-b16a5c888ab649b0adf1702348659351-idle-9aa77a5bd2d7443d97c0290a1367d823.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-w804a0651eb-b16a5c888ab649b0adf1702348659351-idle-a39bd06887b6453e9a68bafed098fb1d.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-w804a0651eb-b16a5c888ab649b0adf1702348659351-input-9829edf3e87a4ef9beb8704587d254b7.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-w804a0651eb-b16a5c888ab649b0adf1702348659351-video-4b4fde819aac44ce8be445aac1cac4ae.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-w96b85849e8-3fe9fe74325c4444b7f748b22f020362-idle-2125d8c77b854a248abac33a9f3d260a.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-w96b85849e8-3fe9fe74325c4444b7f748b22f020362-idle-8d4418746c4c40d8adc40a7d9678d9f9.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-w96b85849e8-3fe9fe74325c4444b7f748b22f020362-input-e7a097063c63450abb0444ec90913662.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    },
+    {
+      "name": "rr-w96b85849e8-3fe9fe74325c4444b7f748b22f020362-video-4e6ded24dba642cca0a95f754f06bc2d.service",
+      "ControlGroup": "",
+      "LoadState": "not-found",
+      "ActiveState": "inactive"
+    }
+  ],
+  "remaining_candidate_processes": [],
+  "browser_profiles_removed": [
+    "/home/poi/snap/chromium/common/robot-runtime-test-27444e4fb6",
+    "/home/poi/snap/chromium/common/robot-runtime-test-3152cef132",
+    "/home/poi/snap/chromium/common/robot-runtime-test-804a0651eb",
+    "/home/poi/snap/chromium/common/robot-runtime-test-96b85849e8",
+    "/home/poi/snap/chromium/common/robot-runtime-test-18e2d98d8a",
+    "/home/poi/snap/chromium/common/robot-runtime-test-5a7e5e1e8b",
+    "/home/poi/snap/chromium/common/robot-runtime-test-7ed4e55a7f",
+    "/home/poi/snap/chromium/common/robot-runtime-test-d52a767eb7",
+    "/home/poi/snap/chromium/common/robot-runtime-test-efc1d1d694",
+    "/home/poi/snap/chromium/common/robot-runtime-test-f8705cf2a6"
+  ],
+  "installed_runs_unchanged": true,
+  "installed_service_invocations_unchanged": true,
+  "scope": "Isolated software fixtures, synthetic media and input; no physical sensor/vehicle acceptance."
+}

@@ -1,0 +1,180 @@
+{
+  "token": "804a0651eb",
+  "checks": [
+    {
+      "check": "public_status_cannot_command",
+      "passed": true
+    },
+    {
+      "check": "https_cookie_origin_host_and_csrf_enforced",
+      "passed": true
+    },
+    {
+      "check": "input_alone_real_datachannel_receipt_pause_and_no_media_workload",
+      "passed": true,
+      "source": "simulation"
+    },
+    {
+      "check": "video_alone_real_h264_webrtc_frames_and_no_input_peer",
+      "passed": true
+    },
+    {
+      "check": "bounded_admission_before_native_video_and_foreign_owner_rejected",
+      "passed": true
+    },
+    {
+      "check": "last_video_subscriber_releases_capture_and_encoders",
+      "passed": true
+    },
+    {
+      "check": "combined_media_reconfiguration_preserves_independent_input_session",
+      "passed": true
+    },
+    {
+      "check": "server_logout_revokes_native_sessions_without_client_cooperation",
+      "passed": true
+    },
+    {
+      "check": "manager_generation_change_revokes_sessions_preserves_owned_services",
+      "passed": true
+    },
+    {
+      "check": "web_restart_revokes_native_sessions_preserves_owned_services",
+      "passed": true
+    },
+    {
+      "check": "credential_rotation_revokes_native_sessions",
+      "passed": true
+    },
+    {
+      "check": "native_services_stop_gracefully_with_empty_owned_cgroups",
+      "passed": true
+    },
+    {
+      "check": "real_chromium_unlock_start_status_logs_stop_lock",
+      "passed": true,
+      "independent_session": true,
+      "javascript_exceptions": []
+    },
+    {
+      "check": "cli_operates_with_web_down_and_workload_survives_web_exit",
+      "passed": true
+    },
+    {
+      "check": "web_restart_revokes_sessions",
+      "passed": true
+    },
+    {
+      "check": "five_concurrent_observation_connections",
+      "passed": true
+    }
+  ],
+  "origin": "https://localhost:44601",
+  "browser_profile": "/home/poi/snap/chromium/common/robot-runtime-test-804a0651eb",
+  "tls": "Temporary certificate trusted by the API client; Chromium trusts only its SPKI for this test",
+  "passed": true,
+  "final_status": {
+    "age_seconds": 0.00018966896459460258,
+    "api_version": 1,
+    "boot_id": "3da364df-2ec6-41ad-afb0-905abaf8e9ff",
+    "config_revision": "87ff3d811bfced87724700a4552544b659a9673c37e52cb32586734ec320922b",
+    "conflicts": [],
+    "error": null,
+    "fresh": true,
+    "generation": "a077cfdd58e849638d741dd6076ff6ef",
+    "observed_monotonic": 304020.526295569,
+    "revision": 45,
+    "robot_id": "test-robot",
+    "ros": {
+      "available": false,
+      "capability_revision": 0,
+      "enabled": false,
+      "error": "ROS is not configured",
+      "generation": null,
+      "snapshot_capture": null,
+      "subscriptions": []
+    },
+    "server_time_ms": 1792799228076,
+    "units": [
+      {
+        "available": true,
+        "blocked": false,
+        "fresh": true,
+        "label": "Software fixture",
+        "launch_mode": null,
+        "launch_modes": [],
+        "lifecycle": "exited",
+        "main_exit_code": 1,
+        "main_exit_status": 0,
+        "main_pid": 0,
+        "members": [],
+        "observation_age_seconds": 0.8437337409704924,
+        "ownership": "owned",
+        "ownership_observation_age_seconds": 0.8437335169874132,
+        "public_logs": true,
+        "readiness": "unavailable",
+        "run_id": "9aa77a5bd2d7443d97c0290a1367d823",
+        "start_blocked_by": [],
+        "stop_phase": "complete",
+        "stop_request_id": "72373ba1-10fd-4407-ab55-b904869a04b9",
+        "supervisor_result": "success",
+        "supervisor_state": "inactive",
+        "unavailable_reason": null,
+        "unit_id": "idle"
+      },
+      {
+        "available": true,
+        "blocked": false,
+        "fresh": true,
+        "label": "Synthetic video",
+        "launch_mode": null,
+        "launch_modes": [],
+        "lifecycle": "exited",
+        "main_exit_code": 1,
+        "main_exit_status": 0,
+        "main_pid": 0,
+        "members": [],
+        "observation_age_seconds": 2.675913415965624,
+        "ownership": "owned",
+        "ownership_observation_age_seconds": 2.6759129679994658,
+        "public_logs": false,
+        "readiness": "unavailable",
+        "run_id": "4b4fde819aac44ce8be445aac1cac4ae",
+        "start_blocked_by": [],
+        "stop_phase": "complete",
+        "stop_request_id": "a54f1b53-4cfe-4a5d-b81f-457f7adb2d9c",
+        "supervisor_result": "success",
+        "supervisor_state": "inactive",
+        "unavailable_reason": null,
+        "unit_id": "video"
+      },
+      {
+        "available": true,
+        "blocked": false,
+        "fresh": true,
+        "label": "Diagnostic input",
+        "launch_mode": null,
+        "launch_modes": [],
+        "lifecycle": "exited",
+        "main_exit_code": 1,
+        "main_exit_status": 0,
+        "main_pid": 0,
+        "members": [],
+        "observation_age_seconds": 2.848204137990251,
+        "ownership": "owned",
+        "ownership_observation_age_seconds": 2.848203561967239,
+        "public_logs": false,
+        "readiness": "unavailable",
+        "run_id": "9829edf3e87a4ef9beb8704587d254b7",
+        "start_blocked_by": [],
+        "stop_phase": "complete",
+        "stop_request_id": "7464a85d-5140-4b7f-b511-49798232e1dd",
+        "supervisor_result": "success",
+        "supervisor_state": "inactive",
+        "unavailable_reason": null,
+        "unit_id": "input"
+      }
+    ]
+  },
+  "cleanup_errors": []
+}

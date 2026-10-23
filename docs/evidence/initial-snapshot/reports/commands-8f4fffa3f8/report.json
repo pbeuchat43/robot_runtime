@@ -1,0 +1,63 @@
+{
+  "checks": [
+    "one_publication_deduplication_and_publisher_release",
+    "ignored_input_is_not_reported_as_application_acceptance",
+    "arbitrary_stale_expired_and_duplicate_targets_refused",
+    "manager_restart_preserves_provider_and_does_not_replay",
+    "standalone_cli_without_web"
+  ],
+  "domain_id": 228,
+  "passed": true,
+  "final_status": {
+    "age_seconds": 0.0001460519852116704,
+    "api_version": 1,
+    "boot_id": "3da364df-2ec6-41ad-afb0-905abaf8e9ff",
+    "config_revision": "cc3b6b1bb874aabf0cb32517fa556fd7d41715cf2c091bab8c5f9c6c9b862db7",
+    "conflicts": [],
+    "error": null,
+    "fresh": true,
+    "generation": "ca8fa55300a3412a9b74b7eda8e9d115",
+    "observed_monotonic": 303749.360547012,
+    "revision": 78,
+    "robot_id": "command-fixture",
+    "ros": {
+      "available": true,
+      "capability_revision": 8,
+      "enabled": true,
+      "error": null,
+      "generation": "43e665c94f5f44938328ff031e4ecc25",
+      "snapshot_capture": null,
+      "subscriptions": []
+    },
+    "server_time_ms": 1792798956910,
+    "units": [
+      {
+        "available": true,
+        "blocked": false,
+        "fresh": true,
+        "label": "Synthetic command provider",
+        "launch_mode": null,
+        "launch_modes": [],
+        "lifecycle": "exited",
+        "main_exit_code": 1,
+        "main_exit_status": 0,
+        "main_pid": 0,
+        "members": [],
+        "observation_age_seconds": 0.032539881009142846,
+        "ownership": "owned",
+        "ownership_observation_age_seconds": 0.032539432984776795,
+        "public_logs": true,
+        "readiness": "unavailable",
+        "run_id": "b931f8de30b54849afbcde2a3400ac7a",
+        "start_blocked_by": [],
+        "stop_phase": "complete",
+        "stop_request_id": "105c95b2-eb7e-4822-ba88-35a2d5ce119e",
+        "supervisor_result": "success",
+        "supervisor_state": "inactive",
+        "unavailable_reason": null,
+        "unit_id": "idle"
+      }
+    ]
+  },
+  "cleanup_errors": []
+}

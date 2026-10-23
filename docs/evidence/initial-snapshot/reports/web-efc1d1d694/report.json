@@ -1,0 +1,107 @@
+{
+  "token": "efc1d1d694",
+  "checks": [
+    {
+      "check": "public_status_cannot_command",
+      "passed": true
+    },
+    {
+      "check": "https_cookie_origin_host_and_csrf_enforced",
+      "passed": true
+    },
+    {
+      "check": "lost_goal_reply_and_reload_reconcile_by_id_without_replay_and_preserve_drafts",
+      "passed": true
+    },
+    {
+      "check": "feedback_expires_and_another_unlocked_session_can_cancel_with_separate_ack_and_result",
+      "passed": true
+    },
+    {
+      "check": "browser_departure_keeps_goal_running_and_return_observes_completion_without_resubmit",
+      "passed": true
+    },
+    {
+      "check": "action_form_layout_is_readable_at_1400_and_900_pixels",
+      "passed": true
+    },
+    {
+      "check": "locked_browser_can_observe_results_but_cannot_send_or_cancel",
+      "passed": true
+    },
+    {
+      "check": "real_chromium_unlock_start_status_logs_stop_lock",
+      "passed": true,
+      "independent_session": true,
+      "javascript_exceptions": []
+    },
+    {
+      "check": "cli_operates_with_web_down_and_workload_survives_web_exit",
+      "passed": true
+    },
+    {
+      "check": "web_restart_revokes_sessions",
+      "passed": true
+    },
+    {
+      "check": "five_concurrent_observation_connections",
+      "passed": true
+    }
+  ],
+  "origin": "https://localhost:40297",
+  "browser_profile": "/home/poi/snap/chromium/common/robot-runtime-test-efc1d1d694",
+  "tls": "Temporary certificate trusted by the API client; Chromium trusts only its SPKI for this test",
+  "passed": true,
+  "final_status": {
+    "age_seconds": 0.00018826103769242764,
+    "api_version": 1,
+    "boot_id": "3da364df-2ec6-41ad-afb0-905abaf8e9ff",
+    "config_revision": "36096aca8b48043c51611f3035cdd7a9e89471c47070250ed420ab40b4c62421",
+    "conflicts": [],
+    "error": null,
+    "fresh": true,
+    "generation": "c2b62d9dd9d64c0ea31635e4ba208873",
+    "observed_monotonic": 303920.182421733,
+    "revision": 54,
+    "robot_id": "action-fixture",
+    "ros": {
+      "available": true,
+      "capability_revision": 23,
+      "enabled": true,
+      "error": null,
+      "generation": "e313d9c81d3e43bf86cb639ca37ac212",
+      "snapshot_capture": null,
+      "subscriptions": []
+    },
+    "server_time_ms": 1792799127732,
+    "units": [
+      {
+        "available": true,
+        "blocked": false,
+        "fresh": true,
+        "label": "Synthetic counting action",
+        "launch_mode": null,
+        "launch_modes": [],
+        "lifecycle": "exited",
+        "main_exit_code": 1,
+        "main_exit_status": 0,
+        "main_pid": 0,
+        "members": [],
+        "observation_age_seconds": 0.5944874770357274,
+        "ownership": "owned",
+        "ownership_observation_age_seconds": 0.5944866450154223,
+        "public_logs": true,
+        "readiness": "unavailable",
+        "run_id": "85c090fd90624279a87aae09953ad554",
+        "start_blocked_by": [],
+        "stop_phase": "complete",
+        "stop_request_id": "253a65f8-59a1-4b38-9911-ffb48276a44a",
+        "supervisor_result": "success",
+        "supervisor_state": "inactive",
+        "unavailable_reason": null,
+        "unit_id": "idle"
+      }
+    ]
+  },
+  "cleanup_errors": []
+}
