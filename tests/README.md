@@ -90,6 +90,12 @@ python SOURCE/tests/integration_browser.py SLICE_ROOT --av-native PREPARED_NATIV
 
 The unit suite needs no camera SDK or GStreamer. The native suite uses synthetic video and controller packets with an explicitly prepared dependency prefix; `deployment/prepare-av-native.py` records copied dependency identities and notices. Checks cover sessions, admission, freshness, authenticated signaling, revocation, and cleanup. They do not establish physical controller input, camera support, vehicle authority, or driving acceptance.
 
+`test_av_image.py` uses the host's NumPy/OpenCV installation for synthetic square/
+rectangular image conversion and bounded source-rate admission. Browser-client
+checks cover declared independent launch selections, completed-stop gating,
+uncertain outcomes, cancellation and required source modes. Hardware composition
+evidence is maintained by its integration repository.
+
 ## Optional external bridge
 
 `integration_foxglove.py ROS_ROOT` and `integration_browser.py ROS_ROOT --foxglove` exercise a separately provisioned Foxglove bridge. Its own access policy is distinct from runtime command authentication. It is not required for ordinary runtime operation.

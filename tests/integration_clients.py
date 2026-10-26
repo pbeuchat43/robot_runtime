@@ -33,8 +33,9 @@ async def main(root):
     unit = "drt-clients-" + token
     assets = importlib.resources.files("robot_runtime") / "static"
     module_names = [f"client-{name}.mjs" for name in ("core", "http", "sse", "stream", "multiplex", "page")]
+    module_names += ['launch-control.mjs']
     module_names += ['av/' + name for name in ('core.js', 'control-client.js', 'gamepad-input.js', 'gamepad-art.js',
-        'components/gamepad-view.js', 'components/control-panel.js', 'components/video-view.js')]
+        'components/gamepad-view.js', 'components/control-panel.js', 'components/video-view.js', 'components/source-controls.js')]
     metrics = {"active": 0, "selections": [], "commands": 0}
     report = {
         "passed": False, "cleanup_errors": [], "synthetic": True,

@@ -18,6 +18,15 @@ def frame_age_seconds(stamp_ns, ros_now_ns, tolerance_ms):
     return max(0, age)
 
 
+def frame_deadline(now, previous, fps):
+    """Rate-limit conversion without resetting the phase on every arrival.
+
+    A late arrival may use one frame of credit; missed intervals never queue up.
+    Resetting to now + period drops alternate frames under ordinary source jitter.
+    """
+    return None if now < previous else max(previous + 1 / fps, now)
+
+
 def image_to_nv12(message, width, height):
     import cv2
     import numpy as np
@@ -31,7 +40,17 @@ def image_to_nv12(message, width, height):
     rows = np.frombuffer(message.data, dtype=np.uint8).reshape(message.height, message.step)
     image = rows[:, :message.width * channels].reshape(message.height, message.width, channels)
     if (message.width, message.height) != (width, height):
-        image = cv2.resize(image, (width, height), interpolation=cv2.INTER_AREA)
+        # Keep robot-rendered boxes and the source geometry in proportion when
+        # a square camera and a rectangular camera share one encoder profile.
+        scale = min(width / message.width, height / message.height)
+        resized_width = max(1, min(width, round(message.width * scale)))
+        resized_height = max(1, min(height, round(message.height * scale)))
+        resized = cv2.resize(image, (resized_width, resized_height), interpolation=cv2.INTER_AREA)
+        image = np.zeros((height, width, channels), dtype=np.uint8)
+        if channels == 1:
+            resized = resized.reshape(resized_height, resized_width, 1)
+        left, top = (width - resized_width) // 2, (height - resized_height) // 2
+        image[top:top + resized_height, left:left + resized_width] = resized
     if message.encoding == 'mono8':
         image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
     conversion = cv2.COLOR_RGB2YUV_I420 if message.encoding == 'rgb8' else cv2.COLOR_BGR2YUV_I420
@@ -82,7 +101,8 @@ def ros_worker(device, width, height, fps, pixels, stamp, sequence, lock, stoppe
         def receive(message):
             nonlocal next_at
             now = time.monotonic()
-            if now < next_at:
+            deadline = frame_deadline(now, next_at, fps)
+            if deadline is None:
                 return  # Rate-limit before pixel conversion, resizing or copying.
             stamp_ns = message.header.stamp.sec * 1_000_000_000 + message.header.stamp.nanosec
             age = frame_age_seconds(stamp_ns, node.get_clock().now().nanoseconds,
@@ -95,7 +115,7 @@ def ros_worker(device, width, height, fps, pixels, stamp, sequence, lock, stoppe
                 stamp.value = now - age
                 sequence.value += 1
                 ready.set()
-            next_at = now + 1 / fps
+            next_at = deadline
 
         node.create_subscription(Image, device['topic'], receive,
             QoSProfile(history=HistoryPolicy.KEEP_LAST, depth=1,

@@ -17,7 +17,8 @@
     <div class="av-columns">
     <section id="media-section"><h2>Video service</h2><label>Declared source <select id="media-select"></select></label>
       <button id="media-start" disabled>Start video service</button><button id="media-stop" disabled>Stop video service</button>
-      <p id="media-status" role="status"></p><div id="video"></div><div id="settings"></div></section>
+      <p id="media-status" role="status"></p><div id="source-controls"></div><div id="video"></div><div id="settings"></div>
+      <details><summary>Source processing observations</summary><p>Receipt freshness is separate from acquisition age and processing health.</p><div id="source-observations"></div></details></section>
     <section id="input-section"><h2>Input service</h2><label>Declared receiver <select id="input-select"></select></label>
       <button id="input-start" disabled>Start input service</button><button id="input-stop" disabled>Stop input service</button>
       <p id="input-status" role="status"></p><div id="receipt"></div><div id="gamepad"></div></section>

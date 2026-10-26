@@ -147,9 +147,12 @@ class BrowserAdapter:
     async def command(self, request):
         session = self.session(request, required=True, csrf=True)
         action = request.match_info["action"]
-        if action not in ("start", "stop"):
+        if action not in ("start", "stop", "prepare-launch"):
             raise Fault("not_found", "Unknown command")
         value = await self.body(request)
+        if action == "prepare-launch":
+            fields(value, ("config_revision",), ("mode",))
+            return web.json_response(await self.rpc("prepare_launch", unit_id=request.match_info["unit"], **value))
         fields(value, ("request_id", "expires_at_ms", "config_revision"), ("expected_run", "mode"))
         result = await self.rpc(action, unit_id=request.match_info["unit"], actor="browser:" + session["id"], **value)
         return web.json_response(result, status=202)
@@ -404,11 +407,11 @@ def application(state, origin, credential):
                  "snapshots.js": "application/javascript", "imu.js": "application/javascript", "spatial.js": "application/javascript",
                  "spatial3d.js": "application/javascript", "resources.js": "application/javascript", "actions.js": "application/javascript", "style.css": "text/css",
                  **{f"client-{name}.mjs": "application/javascript" for name in ("core", "http", "sse", "stream", "multiplex", "page")},
-                 "views-runtime.mjs": "application/javascript", "page-monitor.mjs": "application/javascript",
+                 "views-runtime.mjs": "application/javascript", "page-monitor.mjs": "application/javascript", "launch-control.mjs": "application/javascript",
                  "autonomous.html": "text/html", "outreach.html": "text/html", "av.html": "text/html"}
         av_assets = {"core.js", "runtime-api.js", "page.js", "page.css", "gamepad-art.js", "gamepad-input.js", "control-client.js",
             "media-client.js", "components.css", "freshness.js", "vendor/gstwebrtc-api-3.0.0.esm.js",
-            *{"components/" + part + ".js" for part in ("camera-picker", "control-panel", "diagnostics", "gamepad-view", "stream-settings", "video-view")}}
+            *{"components/" + part + ".js" for part in ("camera-picker", "control-panel", "diagnostics", "gamepad-view", "stream-settings", "video-view", "source-controls")}}
         types.update({"av/" + part: "text/css" if part.endswith(".css") else "application/javascript" for part in av_assets})
         if name not in types:
             raise web.HTTPNotFound()

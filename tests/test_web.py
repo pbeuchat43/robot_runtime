@@ -77,6 +77,21 @@ class WebTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.status, 401)
         self.assertFalse(self.calls)
 
+    async def test_launch_preflight_requires_authorization_and_accepts_only_declared_id(self):
+        body = dict(config_revision="rev", mode="b-objects")
+        result = await self.client.post("/api/units/worker/prepare-launch", json=body, headers=self.headers)
+        self.assertEqual(result.status, 401)
+        token, session = self.adapter.auth.issue()
+        headers = dict(self.headers, Cookie=COOKIE + "=" + token, **{"X-CSRF-Token": session["csrf"]})
+        result = await self.client.post("/api/units/worker/prepare-launch", json=body, headers=headers)
+        self.assertEqual(result.status, 200)
+        self.assertEqual(self.calls[-1], ("prepare_launch", dict(unit_id="worker", **body)))
+        result = await self.client.post("/api/units/worker/prepare-launch", json=dict(body, argv=["/bin/sh"]), headers=headers)
+        self.assertEqual(result.status, 400)
+        for asset in ("launch-control.mjs", "av/components/source-controls.js"):
+            result = await self.client.get("/assets/" + asset, headers=self.headers)
+            self.assertEqual(result.status, 200)
+
     async def test_every_script_referenced_by_the_page_is_served(self):
         page = await self.client.get("/", headers=self.headers)
         for path in re.findall(r'<script[^>]+src="([^"]+)"', await page.text()):

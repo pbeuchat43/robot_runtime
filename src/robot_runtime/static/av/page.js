@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 Paul N. Beuchat
 import {createPageClients} from '../client-page.mjs';
-import {mountRuntime} from '../views-runtime.mjs';
+import {mountRuntime, mountObservations} from '../views-runtime.mjs';
 import {RuntimeAVApi} from './runtime-api.js';
 import {GamepadInput} from './gamepad-input.js';
 import {ControlClient} from './control-client.js';
@@ -10,6 +10,7 @@ import {mountGamepad} from './components/gamepad-view.js';
 import {mountControl} from './components/control-panel.js';
 import {mountVideo} from './components/video-view.js';
 import {mountStreamSettings} from './components/stream-settings.js';
+import {mountSourceControls} from './components/source-controls.js';
 
 const mode = location.pathname.slice(1), $ = id => document.getElementById(id);
 const wantsMedia = mode !== 'input', wantsInput = mode !== 'video';
@@ -17,11 +18,15 @@ document.body.dataset.combined = String(wantsMedia && wantsInput);
 document.title = `${wantsMedia && wantsInput ? 'Camera and gamepad' : wantsMedia ? 'Video' : 'Gamepad input'} · Robot runtime`;
 $('title').textContent = document.title;
 $('media-section').hidden = !wantsMedia; $('input-section').hidden = !wantsInput;
-let csrf = null, catalog = null, snapshot = null, disposed = false, refreshing = false;
+let csrf = null, catalog = null, snapshot = null, disposed = false, refreshing = false, ros = null;
 const clients = createPageClients({headers: () => csrf ? {'X-CSRF-Token': csrf} : {}});
 const releaseRuntime = clients.runtime.acquire();
 const runtimeView = mountRuntime($('runtime'), clients);
 const input = new GamepadInput(), compositions = new Map();
+const sourceControls = mountSourceControls($('source-controls'), {http: clients.http,
+  disconnect: () => compositions.get('media')?.client.disconnect()});
+let observationsView = null, observationsKey = '';
+const releaseObservations = wantsMedia ? clients.observations.acquire() : () => {};
 if (wantsInput) compositions.set('local', {views: [mountGamepad($('gamepad'), {input})]});
 
 function clear(kind) {
@@ -48,14 +53,27 @@ function renderServices() {
     $(kind + '-stop').disabled = !csrf || !unit || !snapshot.fresh || unit.ownership !== 'owned' || !unit.run_id || Boolean(unit.stop_request_id);
     $(kind + '-status').textContent = service ? `${service.label} · ${unit?.lifecycle || 'unknown'} · ${service.source?.label || 'Diagnostic input only'}` : 'No declared service';
   }
+  const service = catalog?.services.find(s => s.id === $('media-select').value);
+  const owner = service?.source?.owner_unit;
+  const unit = snapshot?.units.find(u => u.unit_id === owner);
+  sourceControls.update({unit, snapshot, enabled: Boolean(csrf), requiredMode: service?.source?.required_mode});
+  const topics = wantsMedia ? (ros?.topics || []).filter(topic => topic.unit_id === owner && !topic.projection) : [];
+  const key = JSON.stringify(topics.map(topic => [topic.id, topic.label]));
+  if (key !== observationsKey) {
+    observationsKey = key; observationsView?.destroy();
+    observationsView = mountObservations($('source-observations'), {observations: clients.observations, topics, title: 'Processing state'});
+    if (topics.length) clients.observations.connect({topics: topics.map(topic => topic.id)});
+    else clients.observations.disconnect();
+  }
 }
 async function refresh() {
   if (refreshing || disposed) return;
   refreshing = true;
   try {
-    const [session, next] = await Promise.all([clients.http.get('api/session'), clients.http.get('api/av')]);
+    const [session, next, nextRos] = await Promise.all([clients.http.get('api/session'), clients.http.get('api/av'),
+      snapshot?.ros?.enabled ? clients.http.get('api/ros') : Promise.resolve(null)]);
     if (disposed) return;
-    csrf = session.csrf; catalog = next;
+    csrf = session.csrf; catalog = next; ros = nextRos;
     $('sign-in').hidden = session.authenticated;
     $('auth-status').textContent = session.authenticated ? 'Commands unlocked' : 'Unlock to start services and connect';
     $('lock').disabled = !session.authenticated;
@@ -82,6 +100,7 @@ $('unlock').addEventListener('submit', async event => {
   } catch (error) { $('message').textContent = error.message; }
 });
 $('lock').addEventListener('click', async () => {
+  sourceControls.cancel();
   for (const value of compositions.values()) value.client?.disconnect();
   try { await clients.http.post('api/logout', {}); await refresh(); }
   catch (error) { $('message').textContent = error.message; }
@@ -108,11 +127,15 @@ const unwatch = clients.runtime.subscribe(state => { snapshot = state.snapshot; 
 clients.runtime.connect(); refresh();
 const timer = setInterval(() => { if (!document.hidden) refresh(); }, 3000);
 window.addEventListener('pagehide', event => {
+  sourceControls.cancel(); clients.observations.disconnect();
   for (const value of compositions.values()) value.client?.disconnect();
   clients.runtime.disconnect();
   if (event.persisted) return;
   disposed = true; clearInterval(timer); unwatch(); runtimeView.destroy();
   for (const kind of [...compositions.keys()]) clear(kind);
+  sourceControls.destroy(); observationsView?.destroy(); releaseObservations();
   input.dispose(); releaseRuntime(); clients.dispose();
 });
-window.addEventListener('pageshow', () => { if (!disposed) clients.runtime.connect(); });
+window.addEventListener('pageshow', () => {
+  if (!disposed) { clients.runtime.connect(); observationsKey = ''; renderServices(); }
+});

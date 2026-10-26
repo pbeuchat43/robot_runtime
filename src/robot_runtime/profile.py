@@ -34,6 +34,63 @@ def launch_argv(argv):
     absolute(argv[0])
 
 
+def public_mode(mode):
+    return {key: mode[key] for key in ("id", "label", "selections") if key in mode} if mode else None
+
+
+def select_launch(unit, mode_id=None):
+    """Resolve only installed choices; shared by preflight and Start."""
+    if not unit.get("available", True):
+        raise Fault("unit_unavailable", unit["unavailable_reason"])
+    mode_id = mode_id if mode_id is not None else unit.get("default_launch_mode")
+    mode = next((item for item in unit.get("launch_modes", []) if item["id"] == mode_id), None)
+    if mode_id is not None and (not isinstance(mode_id, str) or mode is None):
+        raise Fault("invalid_request", "Unknown launch mode")
+    spec = dict(unit, argv=mode["argv"]) if mode else dict(unit)
+    check_launch(spec)
+    return spec, mode
+
+
+def validate_selections(unit, modes):
+    selections = unit.get("launch_selections")
+    if selections is None:
+        if "default_launch_mode" in unit or any("selections" in mode for mode in modes):
+            raise Fault("invalid_profile", "Mode selections require declared launch selections")
+        return
+    if not isinstance(selections, list) or not 1 <= len(selections) <= 3:
+        raise Fault("invalid_profile", "Declare one to three independent launch selections")
+    choices = {}
+    for selection in selections:
+        fields(selection, ("id", "label", "choices"))
+        key = identifier(selection["id"])
+        text(selection["label"], 80)
+        if key in choices or not isinstance(selection["choices"], list) or not 1 <= len(selection["choices"]) <= 8:
+            raise Fault("invalid_profile", "Selection IDs must be unique with one to eight choices")
+        allowed = set()
+        for choice in selection["choices"]:
+            fields(choice, ("id", "label"))
+            identity = identifier(choice["id"])
+            text(choice["label"], 80)
+            if identity in allowed:
+                raise Fault("invalid_profile", "Duplicate selection choice")
+            allowed.add(identity)
+        choices[key] = allowed
+    combinations = set()
+    for mode in modes:
+        selected = mode.get("selections")
+        if not isinstance(selected, dict) or set(selected) != set(choices):
+            raise Fault("invalid_profile", "Each launch mode must resolve every selection")
+        if any(not isinstance(value, str) or value not in choices[key] for key, value in selected.items()):
+            raise Fault("invalid_profile", "Unknown launch selection choice")
+        combination = tuple(sorted(selected.items()))
+        if combination in combinations:
+            raise Fault("invalid_profile", "Ambiguous launch selection combination")
+        combinations.add(combination)
+    default = next((mode for mode in modes if mode["id"] == unit.get("default_launch_mode")), None)
+    if default is None or default["argv"] != unit["argv"]:
+        raise Fault("invalid_profile", "Selected launches require an explicit default matching the base argv")
+
+
 def validate(value, *, check_paths=True):
     fields(value, ("schema_version", "robot_id", "namespace", "units"), ("ros", "av"))
     if type(value["schema_version"]) is not int or value["schema_version"] != 1:
@@ -51,7 +108,7 @@ def validate(value, *, check_paths=True):
             text(source["unavailable_reason"], 512)
         else:
             fields(source, ("id", "label", "argv", "working_directory", "environment", "stop"),
-                   ("requires_running", "public_logs", "available", "launch_modes", "conflicts"))
+                   ("requires_running", "public_logs", "available", "launch_modes", "conflicts", "launch_selections", "default_launch_mode"))
         unit = dict(source)
         identifier(unit["id"])
         if unit["id"] in units:
@@ -62,17 +119,18 @@ def validate(value, *, check_paths=True):
             continue
         launch_argv(unit["argv"])
         modes = unit.get("launch_modes", [])
-        if not isinstance(modes, list) or len(modes) > 3:
-            raise Fault("invalid_profile", "Declare at most three additional launch modes")
+        if not isinstance(modes, list) or len(modes) > 8:
+            raise Fault("invalid_profile", "Declare at most eight launch modes")
         seen = set()
         for mode in modes:
-            fields(mode, ("id", "label", "argv"))
+            fields(mode, ("id", "label", "argv"), ("selections",))
             identifier(mode["id"])
             text(mode["label"], 80)
             if mode["id"] in seen:
                 raise Fault("invalid_profile", "Duplicate launch mode")
             seen.add(mode["id"])
             launch_argv(mode["argv"])
+        validate_selections(unit, modes)
         absolute(unit["working_directory"])
         env = unit["environment"]
         if not isinstance(env, dict) or len(env) > 64:

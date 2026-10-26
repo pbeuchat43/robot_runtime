@@ -6,12 +6,72 @@ import {GamepadInput} from '/assets/av/gamepad-input.js';
 import {mountGamepad} from '/assets/av/components/gamepad-view.js';
 import {mountControl} from '/assets/av/components/control-panel.js';
 import {mountVideo} from '/assets/av/components/video-view.js';
+import {changeLaunch} from '/assets/launch-control.mjs';
+import {mountSourceControls} from '/assets/av/components/source-controls.js';
 
 const assert = (condition, message) => { if (!condition) throw Error(message); };
 const frame = () => new Promise(resolve => requestAnimationFrame(resolve));
 const settle = () => new Promise(resolve => setTimeout(resolve, 80));
 
 export async function runAV(test) {
+  await test('selected restart requires confirmed cleanup and never continues after uncertainty or cancellation', async () => {
+    for (const scenario of ['success', 'unknown', 'timeout', 'replaced', 'cancel', 'preflight-failed']) {
+      const commands = [], controller = new AbortController(); let prepares = 0, disconnected = 0;
+      const http = {
+        async post(path, body) {
+          if (path.endsWith('prepare-launch')) {
+            prepares++;
+            if (scenario === 'preflight-failed') throw Error('Missing executable');
+            return {config_revision: 'rev', stop_timeout_seconds: 1,
+              status: {fresh: true, server_time_ms: 1000, units: [{unit_id: 'worker',
+                run_id: scenario === 'replaced' && prepares === 2 ? 'other' : 'old',
+                blocked: prepares === 1, ownership: 'owned'}]}};
+          }
+          commands.push({path, body});
+          if (path.endsWith('/stop')) return {request_id: 'stop-id', phase: 'in_progress'};
+          return {request_id: 'start-id', phase: 'in_progress'};
+        },
+        async operation() {
+          if (scenario === 'cancel') controller.abort();
+          return {request_id: 'stop-id', phase: scenario === 'unknown' ? 'outcome_unknown' : scenario === 'timeout' ? 'timed_out' : 'complete', outcome: 'cgroup_empty'};
+        },
+      };
+      let error = null;
+      try { await changeLaunch({http, unitId: 'worker', revision: 'rev', mode: 'b-objects', action: 'restart',
+        expectedRun: 'old', signal: controller.signal, disconnect: () => disconnected++, sleep: async () => {}, uuid: () => 'fixture'}); }
+      catch (value) { error = value; }
+      assert(Boolean(error) === (scenario !== 'success'), `${scenario}: expected sequence outcome`);
+      assert(commands.filter(item => item.path.endsWith('/start')).length === (scenario === 'success' ? 1 : 0), `${scenario}: no unconfirmed Start`);
+      assert(disconnected === (scenario === 'preflight-failed' ? 0 : 1), `${scenario}: preflight before disconnect`);
+      if (scenario === 'success') {
+        assert(commands[0].body.expected_run === 'old' && commands[1].body.mode === 'b-objects', 'Exact old run and selected new mode');
+      }
+    }
+  });
+  await test('independent source selectors keep requested and resolved configurations separate', async () => {
+    const root = document.body.appendChild(document.createElement('div'));
+    const view = mountSourceControls(root, {http: {}, disconnect() {}});
+    const unit = {unit_id: 'worker', available: true, blocked: true, ownership: 'owned', lifecycle: 'running', run_id: 'old',
+      default_launch_mode: 'a-cones', launch_mode: {label: 'A cones'},
+      launch_selections: [{id: 'camera', label: 'Camera', choices: [{id: 'a', label: 'A'}, {id: 'b', label: 'B'}]},
+        {id: 'model', label: 'Model', choices: [{id: 'cones', label: 'Cones'}, {id: 'objects', label: 'Objects'}]}],
+      launch_modes: ['a', 'b'].flatMap(camera => ['cones', 'objects'].map(model => ({id: `${camera}-${model}`,
+        label: `${camera} ${model}`, selections: {camera, model}})))};
+    try {
+      view.update({unit, snapshot: {fresh: true, config_revision: 'rev'}, enabled: true});
+      const camera = root.querySelector('[data-selection=camera]'), model = root.querySelector('[data-selection=model]');
+      camera.value = 'b'; camera.dispatchEvent(new Event('change'));
+      model.value = 'objects'; model.dispatchEvent(new Event('change'));
+      assert(root.querySelector('[data-ref=requested]').textContent.includes('b objects'), 'Both independent choices resolve');
+      assert(root.querySelector('[data-ref=resolved]').textContent.includes('A cones'), 'Selection does not relabel current run');
+      assert(!root.querySelector('[data-ref=restart]').disabled && root.querySelector('[data-ref=start]').disabled, 'Running selection requires restart');
+      view.update({unit, snapshot: {fresh: false, config_revision: 'rev'}, enabled: true});
+      assert(root.querySelector('[data-ref=restart]').disabled, 'Stale ownership disables restart');
+      view.update({unit: {...unit, launch_selections: [], default_launch_mode: null}, requiredMode: 'b-objects',
+        snapshot: {fresh: true, config_revision: 'rev'}, enabled: true});
+      assert(root.querySelector('[data-ref=requested]').textContent.includes('b objects'), 'Legacy required mode is respected');
+    } finally { view.destroy(); root.remove(); }
+  });
   await test('AV packets sample the device without animation frames; timeout and focus still pause', () => {
     let at = 1000, focused = true, reads = 0;
     const device = {index: 0, id: 'fixture', mapping: 'standard', connected: true,

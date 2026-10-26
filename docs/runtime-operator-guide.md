@@ -42,6 +42,17 @@ Save a profile as `~/.config/robot_runtime/profile.json`, selecting only trusted
 
 Profiles contain 1–20 units. Executable and working paths must be absolute and accessible. IDs use up to 32 lowercase ASCII letters, digits, underscores or hyphens, starting with a letter. Prerequisites must exist and be acyclic; they are checked at start and never launched automatically. Unknown fields/schema versions are rejected. `public_logs` defaults to false; explicitly enabling it exposes that provider's retained output to unauthenticated viewers. Provider output must be suitable for that audience.
 
+An available unit may declare up to eight `launch_modes`, each containing `id`,
+`label` and a fixed `argv`. Optional `launch_selections` declare one to three
+independent selectors, each with `id`, `label` and one to eight `{id, label}`
+choices. Every mode then supplies a `selections` mapping resolving each selector.
+Duplicate combinations, missing/unknown choices and ambiguous mappings are
+rejected. Combinations with no declared mode cannot be started. A selected unit
+must name `default_launch_mode`, whose argv matches the unit's base argv. Ordinary
+Start resolves that default. Existing profiles without selections retain their
+base-argv behavior. This additive schema-1 capability requires a supporting
+runtime; older packages reject these fields.
+
 a unit may instead contain only `id`, `label`, `available: false` and a nonempty `unavailable_reason` (up to 512 characters). Such entries carry no executable or launch configuration. The CLI/API reject start with `unit_unavailable`; the browser shows the reason and disables Start. An available unit cannot depend on an unavailable one. Their displayed state does not observe another runtime's processes. Availability defaults to true for existing profiles. This is an additive schema-1 capability; older packages reject profiles that use it. Change profiles only during stopped maintenance.
 
 available units may declare `conflicts: ["other_unit"]`.
@@ -72,6 +83,7 @@ The `robot-runtime` entry point defaults to `~/.local/state/robot_runtime` (or t
 ```sh
 robot-runtime status
 robot-runtime start example
+robot-runtime start example --mode DECLARED_MODE_ID
 robot-runtime status --fresh
 robot-runtime logs RUN_ID --limit 100
 robot-runtime stop example --expected-run RUN_ID
@@ -83,6 +95,15 @@ robot-runtime watch
 CLI output is JSON. A mutation prints its request ID to stderr before dispatch. Start completion establishes supervisor acceptance, not application readiness. Readiness is explicitly unavailable in this slice. `status` uses cached observations; `--fresh` audits the supervisor. Ownership-property age is separate from lifecycle observation age. Browser status keeps acquisition age across delivery/reconnection and becomes unavailable if observation is too old.
 
 Every accepted start gets a unique run ID and never-reused service name. A populated or unresolved run blocks replacement. Stop requires its expected run ID, sends one declared graceful signal to the cgroup and observes the deadline. It never escalates or repeats automatically. A timeout remains in operation history even if the provider subsequently exits. A launcher that forwards/escalates signals needs provider-specific validation; these mechanics do not prove ROS shutdown or physical stopping.
+
+Status exposes declared selections/modes and the current run's persisted resolved
+`launch_mode`, including its selections. Changing a browser selector does not
+change that run. The `/video` source controls prepare the requested mode, Stop the
+exact previous run, wait for a completed Stop with empty-cgroup evidence, and only
+then issue Start. A failed/unknown/timed-out Stop, replaced run, changed profile,
+page teardown or command locking prevents the subsequent Start. The sequence is
+not resumed after reload or disconnection. Reconnect video explicitly after the
+source is ready; ownership changes revoke the previous media binding.
 
 After a lost response, query `operation REQUEST_UUID` and current status. Do not issue a new start merely because the response was lost. The CLI/API support explicit UUID and expiry fields; identical retained requests return their recorded operation, while reuse with different arguments fails. Clients never replay a mutation automatically. A new browser connection may resume observations and query operation IDs.
 
@@ -103,6 +124,14 @@ robot-runtime-web --state ~/.local/state/robot_runtime \
 ```
 
 Credential creation prompts without echo and refuses to overwrite a file. It stores a salted scrypt verifier, not the passphrase. The page and configured observations are public; every start/stop requires a robot-verified session, exact configured Host/Origin and a session CSRF token. Secure, HttpOnly, SameSite=Strict cookies hold separate random browser sessions. Sessions expire after 30 minutes without an authenticated command or after eight hours overall. Browser labels/session IDs are attribution aids, not individual identities.
+
+`POST /api/units/UNIT/prepare-launch` uses the same session/Origin/CSRF checks and
+accepts only `config_revision` and optional declared `mode`. It audits current
+ownership and checks the selected executable, working directory, conflicts and
+prerequisites without starting/stopping work. It returns resolved mode metadata,
+the Stop deadline and audited status. Preparation is not a reservation or an
+application-readiness check: providers still validate model/device/configuration
+resources during startup, and Start repeats policy checks at dispatch.
 
 Locking commands revokes that session. Web restart revokes all sessions and preserves managed workloads. To rotate the passphrase, create a new private credential file and atomically replace the configured file; the web adapter invalidates sessions when it detects that replacement. Verifications are serialized and rate-limited; at most 32 sessions and eight observation streams are retained. One upstream manager stream is shared by viewers, with one replaceable queued snapshot per viewer. Slow writes expire rather than block other clients. Five connections are the intended sizing target; eight is a connection cap with reconnect headroom.
 
