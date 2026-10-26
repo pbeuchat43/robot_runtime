@@ -1,0 +1,70 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "inert construction, explicit intent, shared ownership and teardown",
+      "passed": true
+    },
+    {
+      "name": "selection replaces baseline, missing/empty data, obsolete callbacks and lossless integers",
+      "passed": true
+    },
+    {
+      "name": "receipt/acquisition/sample deadlines, delayed timers and reconnect invalidation",
+      "passed": true
+    },
+    {
+      "name": "runtime and resource freshness stay distinct from process/sample data",
+      "passed": true
+    },
+    {
+      "name": "listener isolation and synchronous transport lifecycle changes",
+      "passed": true
+    },
+    {
+      "name": "SSE routing, native/closed retries, malformed JSON and cancelled callbacks",
+      "passed": true
+    },
+    {
+      "name": "multiplexed channels, per-topic ages, filtered views and reconnect baseline",
+      "passed": true
+    },
+    {
+      "name": "HTTP explicit requests, CSRF, mount boundary and command uncertainty without replay",
+      "passed": true
+    },
+    {
+      "name": "HTTP cancellation before dispatch, in flight, timeout and disposal",
+      "passed": true
+    },
+    {
+      "name": "real EventSource/fetch loads selected packaged modules and releases demand",
+      "passed": true
+    },
+    {
+      "name": "explicit video reconnect awaits a fresh binding even when hidden-tab polling paused",
+      "passed": true
+    },
+    {
+      "name": "selected restart requires confirmed cleanup and never continues after uncertainty or cancellation",
+      "passed": true
+    },
+    {
+      "name": "independent source selectors keep requested and resolved configurations separate",
+      "passed": true
+    },
+    {
+      "name": "AV packets sample the device without animation frames; timeout and focus still pause",
+      "passed": true
+    },
+    {
+      "name": "AV controller rendering is deferred, skips unchanged DOM, and releases pending paint",
+      "passed": true
+    },
+    {
+      "name": "AV receipt and video views preserve unchanged text and immediately reflect pause",
+      "passed": true
+    }
+  ],
+  "cleanup_errors": []
+}
