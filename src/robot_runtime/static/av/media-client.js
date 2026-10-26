@@ -78,11 +78,17 @@ export class MediaClient {
     if (this.closed) throw Error('Media client has been disposed');
     if (this.want || this.connecting) return;
     if (!this.video) throw Error('Attach a video view before connecting');
-    this.want = true; this.connecting = true;
-    this.connectStarted = this.now();
+    this.connecting = true;
     const generation = ++this.generation;
-    this.publish({status: 'connecting', error: ''});
     try {
+      // Explicit Connect must refresh the source binding even after a hidden tab
+      // paused polling. Refresh before setting want so a new identity cannot
+      // revoke the connection that the user is now deliberately requesting.
+      await this.api.refresh?.();
+      if (generation !== this.generation) return;
+      if (this.api.state?.online === false) throw Error(this.api.state.error || 'Video service unavailable');
+      this.want = true; this.connectStarted = this.now();
+      this.publish({status: 'connecting', error: ''});
       const grant = await this.api.request('media/sessions', {profile}, {timeout: 35000});
       if (!this.want || generation !== this.generation) {
         this.api.request('media/close', {token: grant.token}).catch(() => {}); return;

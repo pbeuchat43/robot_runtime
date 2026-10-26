@@ -6,7 +6,7 @@ import time
 import uuid
 
 from .common import Fault, dumps, fields, text
-from .profile import check_launch
+from .profile import public_mode, select_launch
 from .supervisor import owns
 
 
@@ -189,7 +189,9 @@ class Core:
                         available=unit.get("available", True), unavailable_reason=unit.get("unavailable_reason"),
                         run_id=run["run_id"] if run else None, lifecycle=run["lifecycle"] if run else "stopped",
                         blocked=bool(run and run["blocked"]), readiness="unavailable", fresh=fresh)
-            item["launch_modes"] = [{"id": mode["id"], "label": mode["label"]} for mode in unit.get("launch_modes", [])]
+            item["launch_modes"] = [public_mode(mode) for mode in unit.get("launch_modes", [])]
+            item["launch_selections"] = unit.get("launch_selections", [])
+            item["default_launch_mode"] = unit.get("default_launch_mode")
             item["launch_mode"] = run.get("launch_mode") if run else None
             item["start_blocked_by"] = self._start_conflicts(unit["id"])
             observed = self.observations.get(run["run_id"]) if run else None
@@ -224,6 +226,19 @@ class Core:
         if starting and self.foreign:
             raise Fault("ownership_conflict", "Unowned or conflicting services exist in the runtime namespace")
 
+    def _launch(self, unit_id, mode_id=None):
+        if unit_id not in self.units:
+            raise Fault("not_found", "Unknown runtime unit")
+        spec, mode = select_launch(self.units[unit_id], mode_id)
+        conflicts = self._start_conflicts(unit_id)
+        if conflicts:
+            raise Fault("unit_conflict", "A conflicting workload is populated or unresolved", unit_ids=conflicts)
+        for dependency in self.units[unit_id]["requires_running"]:
+            prerequisite = self.current(dependency)
+            if not prerequisite or prerequisite["lifecycle"] != "running":
+                raise Fault("precondition", "A prerequisite is not running", unit_id=dependency)
+        return spec, mode
+
     def command(self, request, actor):
         action = request["action"]
         fields(request, ("version", "action", "unit_id", "request_id", "expires_at_ms", "config_revision"),
@@ -238,13 +253,9 @@ class Core:
             if old["fingerprint"] != fingerprint:
                 raise Fault("request_conflict", "Request ID was used with different arguments")
             return public_operation(old)
-        mode = None
         if "mode" in request:
             if action != "start" or not isinstance(request["mode"], str):
                 raise Fault("invalid_request", "Only Start accepts a declared launch mode")
-            mode = next((item for item in self.units[unit_id].get("launch_modes", []) if item["id"] == request["mode"]), None)
-            if mode is None:
-                raise Fault("invalid_request", "Unknown launch mode")
         self.store.capacity()
         expiry = request["expires_at_ms"]
         remaining = expiry - self.wall() * 1000 if type(expiry) is int else -1
@@ -260,26 +271,14 @@ class Core:
         self._require_available(starting=action == "start")
         current = self.current(unit_id)
         if action == "start":
-            if not self.units[unit_id].get("available", True):
-                raise Fault("unit_unavailable", self.units[unit_id]["unavailable_reason"])
             if current and current["blocked"]:
                 raise Fault("busy", "Existing run is populated or unresolved", run_id=current["run_id"])
-            conflicts = self._start_conflicts(unit_id)
-            if conflicts:
-                raise Fault("unit_conflict", "A conflicting workload is populated or unresolved", unit_ids=conflicts)
-            for dependency in self.units[unit_id]["requires_running"]:
-                prerequisite = self.current(dependency)
-                if not prerequisite or prerequisite["lifecycle"] != "running":
-                    raise Fault("precondition", "A prerequisite is not running", unit_id=dependency)
-            spec = dict(self.units[unit_id])
-            if mode:
-                spec["argv"] = mode["argv"]
-            check_launch(spec)
+            spec, mode = self._launch(unit_id, request.get("mode"))
             run_id = uuid.uuid4().hex
             current = dict(run_id=run_id, unit_id=unit_id, name=self.prefix + unit_id + "-" + run_id + ".service",
                            boot_id=self.boot, invocation=None, lifecycle="prepared", blocked=True,
                            spec=spec, config_revision=self.revision,
-                           launch_mode={"id": mode["id"], "label": mode["label"]} if mode else None)
+                           launch_mode=public_mode(mode))
         else:
             if not current or current["run_id"] != request["expected_run"]:
                 raise Fault("stale_run", "The requested run is no longer current")
@@ -347,6 +346,16 @@ class Core:
             return self.ros.handle(request, actor)
         if action in ("start", "stop", "resolve"):
             return self.command(request, actor)
+        if action == "prepare_launch":
+            fields(request, ("version", "action", "unit_id", "config_revision"), ("mode",))
+            if request["config_revision"] != self.revision:
+                raise Fault("stale_config", "Profile revision changed")
+            if "mode" in request and not isinstance(request["mode"], str):
+                raise Fault("invalid_request", "Launch mode must be a declared ID")
+            self._require_available(starting=True)
+            spec, mode = self._launch(text(request["unit_id"], 32), request.get("mode"))
+            return dict(config_revision=self.revision, launch_mode=public_mode(mode),
+                        stop_timeout_seconds=spec["stop"]["timeout_seconds"], status=self.status())
         if action == "status":
             fields(request, ("version", "action"), ("fresh",))
             if type(request.get("fresh", False)) is not bool:

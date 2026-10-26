@@ -62,6 +62,15 @@ pauses input; focus returning does not re-enable it. Stopping the service also
 disconnects its clients. Changing the selected capability destroys the previous
 client/views; it does not start the newly selected service.
 
+For a declared ROS source, `/video` also shows its owning workload's declared
+independent selections, requested choice, current resolved run, and Start/Stop/
+Restart controls. Select the camera/model combination before Start or use Restart
+with selection for an existing run. Restart confirms the old run has stopped
+before starting the new mode; uncertainty leaves it for operator inspection.
+Video reconnection remains explicit. The processing panel subscribes to the
+owner's declared scalar status capabilities. Receipt freshness, provider health,
+acquisition age, and process ownership remain separate observations.
+
 Input transmission samples the device at each send, independently of animation
 frames. Controller painting is deferred and unchanged text is preserved to reduce
 browser rendering work. The 250 ms input freshness bound and explicit re-enable
@@ -120,6 +129,15 @@ unmanaged programs. A V4L2 source uses a stable `/dev/v4l/by-id/` or `by-path/`
 path. A ROS source instead declares `owner_unit`, `topic`, `domain_id` and optional
 `required_mode`; it must not conflict with that owner. Its sessions expire when
 the owning run or required mode changes. A `test` source needs only kind and label.
+
+ROS image conversion fits the complete source image inside the encoded canvas,
+preserving aspect ratio with black padding when shapes differ. This keeps boxes
+already rendered on a square or rectangular source in proportion. Encoded
+dimensions describe the canvas, including padding; they do not redefine camera
+intrinsics or detector source-image coordinates.
+Conversion admission advances a rate deadline without resetting it on every
+arrival, retaining ordinary source jitter without accumulating missed intervals.
+It allows at most one frame of burst credit after a long gap.
 
 The observer profile defaults to 640×360 at 5 FPS; the separate stamped teleop
 profile is 640×360 at 30 FPS. The shared settings must be changed with all viewers

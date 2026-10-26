@@ -1,4 +1,12 @@
-# Initial snapshot verification
+# Verification
+
+The current selectable-source development push is recorded in
+[RGB-D viewer verification, 27 October 2026](evidence/2026-10-27-rgbd-viewer/README.md).
+It adds 142-test and packaged-browser evidence plus component integration in the
+sibling `robot_composition` repository. The initial standalone baseline below
+remains historical evidence for unchanged behavior.
+
+## Initial snapshot verification
 
 Verified on 24 October 2026 (Australia/Sydney), using isolated temporary directories on `jah`. The environment was Ubuntu 24.04 arm64, Python 3.12, systemd 255, ROS 2 Jazzy, and headless Chromium. All application, browser, and native checks used the installed `robot-runtime` `0.1.0.dev19` wheel with `PYTHONPATH` unset.
 
