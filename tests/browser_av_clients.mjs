@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 Paul N. Beuchat
 import {observable, neutralInput} from '/assets/av/core.js';
+import {RuntimeAVApi} from '/assets/av/runtime-api.js';
+import {MediaClient} from '/assets/av/media-client.js';
 import {ControlClient} from '/assets/av/control-client.js';
 import {GamepadInput} from '/assets/av/gamepad-input.js';
 import {mountGamepad} from '/assets/av/components/gamepad-view.js';
@@ -14,6 +16,30 @@ const frame = () => new Promise(resolve => requestAnimationFrame(resolve));
 const settle = () => new Promise(resolve => setTimeout(resolve, 80));
 
 export async function runAV(test) {
+  await test('explicit video reconnect awaits a fresh binding even when hidden-tab polling paused', async () => {
+    let releaseConfig;
+    const gate = new Promise(resolve => { releaseConfig = resolve; }), posts = [];
+    const config = {runtime: {run_id: 'video', source_run: 'new-source', generation: 'generation', config_revision: 'revision'},
+      server_time_ms: Date.now(), settings: {change_id: 0, applying: false}, ice_servers: [], stamp: false};
+    const http = {base: location.href, async get(path) {
+      if (path.endsWith('/config')) { await gate; return {...config}; }
+      return {settings: config.settings};
+    }, async post(path, body) { posts.push({path, body}); return {token: 'token', ttl_s: 3, profile: 'observer'}; }};
+    const api = new RuntimeAVApi({http, capability: 'video', document: {hidden: true}});
+    api.events.publish({online: true, config: {...config, runtime: {...config.runtime, source_run: 'old-source'}}, host: {settings: config.settings}});
+    const media = new MediaClient({api, document: {hidden: true}, signallingFactory: async () => ({close() {},
+      api: {registerConnectionListener() {}, registerPeerListener() {}, getAvailableProducers: () => []}})});
+    const detach = media.attachVideo({srcObject: null, cancelVideoFrameCallback() {}}), release = media.acquire();
+    try {
+      const connecting = media.connect();
+      await Promise.resolve(); assert(posts.length === 0, 'No admission request before pending refresh completes');
+      releaseConfig(); await connecting;
+      assert(posts[0]?.body.source_run === 'new-source', 'Explicit Connect uses the new source run');
+      assert(media.want && media.config.runtime.source_run === 'new-source', 'Refresh does not revoke the explicit new connection');
+      media.backend({config: {...config, runtime: {...config.runtime, source_run: 'third-source'}}, host: {}, online: true});
+      assert(!media.want, 'Subsequent source change still revokes the active session without replay');
+    } finally { releaseConfig(); detach(); release(); media.dispose(); api.dispose(); }
+  });
   await test('selected restart requires confirmed cleanup and never continues after uncertainty or cancellation', async () => {
     for (const scenario of ['success', 'unknown', 'timeout', 'replaced', 'cancel', 'preflight-failed']) {
       const commands = [], controller = new AbortController(); let prepares = 0, disconnected = 0;

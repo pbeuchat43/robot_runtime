@@ -32,14 +32,18 @@ export class RuntimeAVApi {
     url.protocol = 'wss:'; url.searchParams.set('token', token); return url.href;
   }
   async refresh() {
-    if (this.pending || this.closed) return;
-    this.pending = true;
-    try {
-      const [config, host] = await Promise.all([this.request('config'), this.request('stats')]);
-      if (!this.closed) this.events.publish({online: true, config, host, error: ''});
-    } catch (error) {
-      if (!this.closed) this.events.publish({...this.state, online: false, error: error.message});
-    } finally { this.pending = false; }
+    if (this.closed) return;
+    if (this.pending) return this.pending;
+    this.pending = (async () => {
+      try {
+        const [config, host] = await Promise.all([this.request('config'), this.request('stats')]);
+        if (!this.closed) this.events.publish({online: true, config, host, error: ''});
+      } catch (error) {
+        if (!this.closed) this.events.publish({...this.state, online: false, error: error.message});
+      }
+    })();
+    try { await this.pending; }
+    finally { this.pending = null; }
   }
   acquire() {
     if (this.closed) throw Error('AV client has been disposed');
