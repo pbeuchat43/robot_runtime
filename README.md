@@ -4,7 +4,7 @@ A standalone ROS 2 runtime and browser platform for research, teaching, and outr
 
 The development package provides explicit process start/stop and recovery, a standalone CLI, authenticated browser commands, declared ROS topics/services/actions, live parameter inspection and editing, bounded spatial and diagnostic observations, requested image snapshots, and on-demand resource monitoring. Optional video and diagnostic gamepad services share runtime authentication and lifecycle. Diagnostic input does not grant vehicle-control authority.
 
-The package is `robot_runtime`; its distribution and commands use `robot-runtime`. The current version is `0.1.0.dev19`. This is a development release: supported-host checks and synthetic fixtures do not establish stable-release sizing, hardware support, or vehicle acceptance.
+The package is `robot_runtime`; its distribution and commands use `robot-runtime`. The current version is `0.1.0.dev22`. This is a development release: supported-host checks and synthetic fixtures do not establish stable-release sizing, hardware support, or vehicle acceptance.
 
 Start with the [operator guide](docs/runtime-operator-guide.md) for standalone installation, configuration, CLI, HTTPS access, and recovery. ROS providers are declared through the [ROS operator guide](docs/ros-operator-guide.md). The runtime has no dependency on a particular robot workspace or installer.
 
