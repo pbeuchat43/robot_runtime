@@ -40,6 +40,9 @@ def declared_camera(source):
         value.update(id="v4l2:" + path, kind="webcam", path=path, formats=sorted(formats),
                      modes=modes, native_mode_count=len(modes))
     elif kind == "ros":
+        if "choices" in source:
+            return [dict(id=c["id"], kind="ros", label=c["label"], topic=c["topic"], available=True)
+                    for c in source["choices"]], []
         value["topic"] = source["topic"]
     return [value], []
 
@@ -52,6 +55,8 @@ class Worker:
         self.mutation = asyncio.Lock()
         self.releasing = set()
         self.stopping = False
+        self.source_binding = None
+        self.source_revision = 0
         self.profiles = {name: load_profile(name, overrides=service.get("profiles", {}).get(name, {})) for name in ("observer", "teleop")}
         self.output = state / ("av-" + service["id"] + "-" + run)
         self.output.mkdir(mode=0o700, exist_ok=False)
@@ -74,9 +79,10 @@ class Worker:
         from .media_service import MediaStream
         source = self.service["source"]
         selector = {"oak": "oak:" + source.get("serial", ""), "v4l2": "v4l2:" + source.get("path", "")}.get(source["kind"], source["kind"])
+        selector = source.get("default_choice", selector)
         self.args.source = selector
         if source["kind"] == "ros":
-            self.args.ros_topic, self.args.ros_domain_id = source["topic"], source["domain_id"]
+            self.args.ros_topic, self.args.ros_domain_id = source.get("topic"), source["domain_id"]
         chosen = "nvv4l2h264enc" if self.service["encoder"] == "hardware" else "x264enc"
         self.args.encoder = chosen
         factory = Gst.ElementFactory.find(chosen)
@@ -87,11 +93,13 @@ class Worker:
         uri = await self.signalling.start()
         cameras = Cameras(selector, self.args.width, self.args.height, self.args.fps,
                           discover_fn=partial(declared_camera, source), policy=vars(self.args), active=False)
+        if "choices" in source:
+            cameras.refresh()
         self.stream = MediaStream(self.args, self.output, cameras, uri, self.signalling.secret)
         await asyncio.to_thread(self.stream.start)
 
     def context(self, value, *, owner=False):
-        fields(value, ("gateway", "owner", "run_id", "config_revision", "source_run"))
+        fields(value, ("gateway", "owner", "run_id", "config_revision", "source_run"), ("source_mode",))
         text(value["gateway"], 64)
         if owner:
             text(value["owner"], 64)
@@ -105,6 +113,35 @@ class Worker:
             raise Fault("av_unavailable", "A current autonomy source run is required")
         return value
 
+    def source_choices(self):
+        choices = self.service.get("source", {}).get("choices", [])
+        mode = self.source_binding[1] if self.source_binding else None
+        return [dict(id=c["id"], label=c["label"], available="active_modes" not in c or mode in c["active_modes"])
+                for c in choices]
+
+    def source_selection(self):
+        return dict(id=self.stream.cameras.selected, revision=self.source_revision, choices=self.source_choices())
+
+    async def bind_source(self, context):
+        """Resolve installed choices against the owned source run, without restarting it."""
+        source = self.service.get("source", {})
+        binding = (context["source_run"], context.get("source_mode"))
+        if not self.stream or "choices" not in source or binding == self.source_binding:
+            return
+        async with self.mutation:
+            if binding == self.source_binding:
+                return
+            for token in tuple(self.sessions.entries):
+                await self.release(token)
+            self.source_binding = binding
+            allowed = [c["id"] for c in self.source_choices() if c["available"]]
+            if not allowed:
+                raise Fault("av_unavailable", "No video source is declared for this launch")
+            if self.stream.cameras.selected not in allowed:
+                selected = source["default_choice"] if source["default_choice"] in allowed else allowed[0]
+                self.stream.select_camera(selected)
+            self.source_revision += 1
+
     def configuration(self):
         policy = vars(self.stream.args) if self.stream else vars(self.args)
         # Explicit allowlist: native signalling credentials never enter public data.
@@ -117,6 +154,8 @@ class Worker:
         if self.stream:
             result.update(settings=self.stream.settings.snapshot(), profile=self.stream.args.profile,
                           encoder_factory="nvv4l2h264enc" if self.service["encoder"] == "hardware" else "x264enc")
+            if "choices" in self.service["source"]:
+                result["source_selection"] = self.source_selection()
         return result
 
     def snapshot(self):
@@ -155,6 +194,7 @@ class Worker:
             raise Fault("invalid_request", "Expected an object")
         if self.stopping:
             raise Fault("av_unavailable", "Service is stopping")
+        await self.bind_source(context)
         if route in PUBLIC:
             fields(body, ())
             if route == "config":
@@ -215,13 +255,15 @@ class Worker:
         if not self.stream:
             raise Fault("not_found", "Unknown diagnostic input operation")
         if route == "media/sessions":
-            fields(body, ("profile",))
+            fields(body, ("profile",), ("source_revision",))
             name = body["profile"]
             if name not in ("observer", "teleop", "current"):
                 raise Fault("invalid_request", "Choose observer, teleop or current")
             if self.mutation.locked():
                 raise Fault("busy", "Media configuration is changing")
             async with self.mutation:
+                if "choices" in self.service["source"]:
+                    self.check_source_revision(body.get("source_revision"))
                 target = self.stream.args.profile if name == "current" else name
                 if self.stream.settings.snapshot()["applying"]:
                     raise Fault("busy", "Media configuration is changing")
@@ -242,15 +284,31 @@ class Worker:
             fields(body, ())
             return dict(ok=True, queued=self.stream.cameras.request_refresh())
         if route == "camera":
-            fields(body, ("id",))
-            # Only the exact declared source exists in this service's inventory.
-            if body["id"] != self.stream.cameras.selected:
-                raise Fault("forbidden", "Choose another declared media service to change source ownership")
-            return dict(ok=True)
+            fields(body, ("id",), ("source_revision",))
+            if "choices" not in self.service["source"]:
+                if body["id"] != self.stream.cameras.selected:
+                    raise Fault("forbidden", "Choose another declared media service to change source ownership")
+                return dict(ok=True)
+            async with self.mutation:
+                self.check_source_revision(body.get("source_revision"))
+                if body["id"] not in [c["id"] for c in self.source_choices() if c["available"]]:
+                    raise Fault("forbidden", "This video source is not selected in the current launch")
+                if self.stream.settings.snapshot()["applying"]:
+                    raise Fault("busy", "Media configuration is changing")
+                if body["id"] != self.stream.cameras.selected:
+                    for token in tuple(self.sessions.entries):
+                        await self.release(token)
+                    self.stream.select_camera(body["id"])
+                    self.source_revision += 1
+                return dict(ok=True, source_selection=self.source_selection())
         if route == "telemetry":
             # Browser diagnostics are not runtime authority and are not retained.
             return dict(ok=True)
         raise Fault("not_found", "Unknown media operation")
+
+    def check_source_revision(self, revision):
+        if type(revision) is not int or revision != self.source_revision:
+            raise Fault("stale_source", "Video source changed; refresh and connect explicitly again")
 
     async def signal(self, request):
         if not self.signalling:

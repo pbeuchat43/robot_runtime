@@ -35,11 +35,12 @@
         latest?.boot_id === state?.boot_id && latest?.generation === state?.ros?.generation && latest?.config_revision === state?.config_revision;
       const valid = sameRun && connected && wanted && selected.has(key) && !document.hidden && !!value?.fresh && age !== null && age <= value.stale_after_seconds &&
         (acquisitionAge === null || acquisitionAge <= value.stale_after_seconds) && (sampleAge === null || sampleAge < value.stale_after_seconds);
+      const inactive = sameRun && connected && wanted && selected.has(key) && !document.hidden && value?.status === "inactive";
       let label = !wanted || !selected.has(key) ? "Paused" : document.hidden ? "Paused while hidden" : !connected ? "Waiting for observations" : (value?.status || "awaiting sample").replaceAll("_", " ");
       if (wanted && !document.hidden && selected.has(key) && value?.status === "current") label = valid ? "Fresh sample" : "Stale sample";
       if (wanted && selected.has(key) && !document.hidden && ["stopped", "exited", "failed"].includes(unit?.lifecycle)) label = "Workload stopped";
-      row.badge.textContent = label;
-      row.badge.className = `badge ${valid ? "live" : "warning"}`;
+      row.badge.textContent = inactive ? "Not selected in this run" : label;
+      row.badge.className = `badge ${valid ? "live" : inactive ? "" : "warning"}`;
       row.data.textContent = value?.data === null || value?.data === undefined ? "No sample" : JSON.stringify(value.data, null, 2);
       row.age.textContent = age === null ? "No receipt timestamp" : `Received ${Math.max(0, age).toFixed(1)}s ago · sequence ${value.sequence}`;
       if (acquisitionAge !== null) row.age.textContent += ` · ${value.data?.timestamp_semantics === "estimated_scan_start" ? "estimated scan start" : "acquired"} ${Math.max(0, acquisitionAge).toFixed(2)}s ago (host clock)`;

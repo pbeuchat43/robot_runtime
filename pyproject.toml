@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "robot-runtime"
-version = "0.1.0.dev20"
+version = "0.1.0.dev21"
 description = "Explicit systemd runtime management and authenticated browser access"
 requires-python = ">=3.12"
 license = {file = "LICENSE"}

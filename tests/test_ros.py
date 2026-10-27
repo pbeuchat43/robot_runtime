@@ -107,6 +107,42 @@ class RosTests(unittest.TestCase):
         ros.remove(channel)
         self.assertFalse(ros.bindings)
 
+    def test_topic_active_modes_validate_installed_owner_launches(self):
+        source = copy.deepcopy(self.config)
+        source["units"][0]["launch_modes"] = [dict(id=mode, label=mode, argv=["/bin/true"]) for mode in ("a", "b")]
+        topic = source["ros"]["topics"][0]
+        topic["active_modes"] = ["a"]
+        validate(source, check_paths=False)
+        for invalid in ([], ["a", "a"], ["missing"], "a", [7]):
+            with self.subTest(active_modes=invalid):
+                topic["active_modes"] = invalid
+                with self.assertRaises(Fault):
+                    validate(source, check_paths=False)
+
+    def test_inactive_topic_has_no_subscription_or_previous_sample(self):
+        self.ros.topics["counter"]["active_modes"] = ["a"]
+        self.run["launch_mode"] = dict(id="b")
+        channel = self.ros.add(["counter"])
+        self.assertFalse(self.ros.bindings)
+        value = self.ros.snapshot()["topics"][0]
+        self.assertEqual(value["status"], "inactive")
+        self.assertEqual(value["run_id"], self.run["run_id"])
+        self.assertFalse(value["fresh"])
+        self.assertNotIn("data", value)
+        self.run["launch_mode"] = dict(id="a")
+        self.ros.runtime_changed()
+        self.assertEqual(self.ros.bindings, dict(counter=self.run["run_id"]))
+        self.ros.event(dict(kind="topic", generation=self.ros.generation, topic_id="counter", run_id=self.run["run_id"],
+                            status="current", data=dict(data="42"), received_monotonic=self.clock(), stream_generation="sample-one"))
+        self.assertTrue(self.ros.snapshot()["topics"][0]["fresh"])
+        self.run["launch_mode"] = dict(id="b")
+        self.ros.runtime_changed()
+        self.assertFalse(self.ros.bindings)
+        value = self.ros.snapshot()["topics"][0]
+        self.assertEqual(value["status"], "inactive")
+        self.assertNotIn("data", value)
+        self.ros.remove(channel)
+
     def test_256_kib_topic_budget_fits_snapshot_transport(self):
         source = copy.deepcopy(self.config)
         template = source["ros"]["topics"][0]

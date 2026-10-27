@@ -35,7 +35,7 @@ async def main(root):
     module_names = [f"client-{name}.mjs" for name in ("core", "http", "sse", "stream", "multiplex", "page")]
     module_names += ['launch-control.mjs']
     module_names += ['av/' + name for name in ('core.js', 'runtime-api.js', 'media-client.js', 'freshness.js', 'control-client.js', 'gamepad-input.js', 'gamepad-art.js',
-        'components/gamepad-view.js', 'components/control-panel.js', 'components/video-view.js', 'components/source-controls.js')]
+        'components/gamepad-view.js', 'components/control-panel.js', 'components/video-view.js', 'components/source-controls.js', 'components/camera-picker.js')]
     metrics = {"active": 0, "selections": [], "commands": 0}
     report = {
         "passed": False, "cleanup_errors": [], "synthetic": True,

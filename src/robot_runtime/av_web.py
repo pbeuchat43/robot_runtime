@@ -25,7 +25,7 @@ class AVGateway:
 
     def context(self, target, owner=None):
         return dict(gateway=self.adapter.generation, owner=owner, run_id=target["run_id"],
-                    config_revision=target["config_revision"], source_run=target["source_run"])
+                    config_revision=target["config_revision"], source_run=target["source_run"], source_mode=target.get("source_mode"))
 
     async def call(self, target, route, body=None, owner=None, **identity):
         try:

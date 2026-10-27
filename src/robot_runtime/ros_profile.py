@@ -59,7 +59,15 @@ def validate(source, unit_ids, *, check_paths=True):
         for spec in capabilities:
             shared = ("id", "label", "unit_id", "node", "name", "type")
             if category == "topics":
-                fields(spec, (*shared, "qos", "max_rate_hz", "stale_after_seconds", "max_serialized_bytes", "max_json_bytes"), ("fields", "projection"))
+                fields(spec, (*shared, "qos", "max_rate_hz", "stale_after_seconds", "max_serialized_bytes", "max_json_bytes"), ("fields", "projection", "active_modes"))
+                if "active_modes" in spec:
+                    modes = spec["active_modes"]
+                    if not isinstance(modes, list) or not 1 <= len(modes) <= 8:
+                        raise Fault("invalid_ros_profile", "Topic active modes require one to eight declared launches")
+                    for mode in modes:
+                        identifier(mode)
+                    if len(set(modes)) != len(modes):
+                        raise Fault("invalid_ros_profile", "Topic active modes must be unique")
                 if ("fields" in spec) == ("projection" in spec):
                     raise Fault("invalid_ros_profile", "Choose scalar fields or one bounded projection")
                 if "projection" in spec:

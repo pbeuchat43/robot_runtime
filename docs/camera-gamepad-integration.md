@@ -16,7 +16,8 @@ with other units that can open the same device. An autonomy source instead reads
 its declared ROS Image topic while its owning provider/run and required image
 mode are current. It never opens or reconfigures the autonomy camera.
 
-Each service has a single configured source. Separate source capabilities can use
+Each service has a single source owner. A ROS service can select among declared
+image topics from that owner without restarting it. Separate capabilities can use
 separate units, allowing the runtime to reserve only the relevant device. Viewers
 share that source and an admitted compatible profile. Incompatible profiles are
 rejected while sessions remain. The imported sender uses one encoder per viewer;
@@ -70,6 +71,15 @@ before starting the new mode; uncertainty leaves it for operator inspection.
 Video reconnection remains explicit. The processing panel subscribes to the
 owner's declared scalar status capabilities. Receipt freshness, provider health,
 acquisition age, and process ownership remain separate observations.
+
+For a ROS service with declared image choices, **Video source** changes only the
+media subscription. The provider and its processing continue uninterrupted.
+The selection is shared by all viewers of that service. A change revokes all
+video subscriptions, clears the previous capture, and requires explicit Connect
+video. It does not restart the source or the video service. The choice remains
+in memory for that video-service run; after an owner launch change, an available
+choice is retained or the applicable default is selected. Unavailable choices
+are disabled. This is independent of camera/model launch selections.
 
 Input transmission samples the device at each send, independently of animation
 frames. Controller painting is deferred and unchanged text is preserved to reduce
@@ -126,9 +136,25 @@ UDP ranges alongside the existing HTTPS port. Declare mutual unit conflicts with
 every other runtime unit that opens the same physical camera. This contract
 coordinates configured runtime units; it cannot reserve a device against
 unmanaged programs. A V4L2 source uses a stable `/dev/v4l/by-id/` or `by-path/`
-path. A ROS source instead declares `owner_unit`, `topic`, `domain_id` and optional
-`required_mode`; it must not conflict with that owner. Its sessions expire when
+path. A ROS source instead declares `owner_unit`, `domain_id` and optional
+`required_mode`; it must not conflict with that owner. It specifies either one
+`topic` (the existing form) or `choices` plus `default_choice`. The latter contains
+one to eight unique `{id, label, topic}` entries. Optional `active_modes` lists
+the installed launch IDs of that owner in which a choice is available; omitting
+it makes that choice available in every launch. At least one choice must cover
+each supported launch. All choices share the source owner and ROS domain.
+The browser submits only a declared ID, never an arbitrary ROS name.
+Its sessions expire when
 the owning run or required mode changes. A `test` source needs only kind and label.
+
+Choice-enabled media configuration includes `source_selection` with `id`,
+`revision` and the labelled choices with availability. The `camera` operation
+requires `{id, source_revision}`; media admission also supplies the observed
+`source_revision`. Stale requests fail before changing the source or admitting
+a session. This revision changes with selection or owner-run binding, separately
+from encoding settings and capture activity. The legacy single-topic form and
+its no-op same-source camera request remain supported. Choice-enabled profiles
+require runtime 0.1.0.dev21 or later; older runtime versions reject these fields.
 
 ROS image conversion fits the complete source image inside the encoded canvas,
 preserving aspect ratio with black padding when shapes differ. This keeps boxes

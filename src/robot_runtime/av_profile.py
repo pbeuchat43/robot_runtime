@@ -52,10 +52,10 @@ def validate(value, units):
             camera = item["source"] = dict(item["source"])
             kind = camera.get("kind")
             required = {"test": (), "oak": ("serial",), "v4l2": ("path",),
-                        "ros": ("owner_unit", "topic", "domain_id")}.get(kind)
+                        "ros": ("owner_unit", "domain_id")}.get(kind)
             if required is None:
                 raise Fault("invalid_profile", "Unknown media source kind")
-            fields(camera, ("kind", "label", *required), ("required_mode",) if kind == "ros" else ())
+            fields(camera, ("kind", "label", *required), ("required_mode", "topic", "choices", "default_choice") if kind == "ros" else ())
             text(camera["label"], 120)
             if kind == "oak":
                 serial = text(camera["serial"], 64)
@@ -77,9 +77,38 @@ def validate(value, units):
                     raise Fault("invalid_profile", "ROS video requires an available separate owner")
                 if provider in units[owner].get("conflicts", []):
                     raise Fault("invalid_profile", "ROS video cannot conflict with its source owner")
-                topic = text(camera["topic"], 240)
-                if not topic.startswith("/") or "//" in topic or not all(c.isalnum() or c in "_/" for c in topic):
-                    raise Fault("invalid_profile", "Video topic must be an absolute ROS name")
+                if ("topic" in camera) == ("choices" in camera):
+                    raise Fault("invalid_profile", "Declare a ROS topic or a list of topic choices")
+                declared_modes = {m["id"] for m in units[provider].get("launch_modes", [])}
+                choices = camera.get("choices", [dict(topic=camera.get("topic"))])
+                if "choices" in camera:
+                    if not isinstance(choices, list) or not 1 <= len(choices) <= 8:
+                        raise Fault("invalid_profile", "Declare one to eight ROS video choices")
+                    ids = set()
+                    for choice in choices:
+                        fields(choice, ("id", "label", "topic"), ("active_modes",))
+                        key = identifier(choice["id"])
+                        text(choice["label"], 120)
+                        if key in ids:
+                            raise Fault("invalid_profile", "Video choice IDs must be unique")
+                        ids.add(key)
+                        if "active_modes" in choice:
+                            modes = choice["active_modes"]
+                            if (not isinstance(modes, list) or not 1 <= len(modes) <= 8 or
+                                    any(not isinstance(m, str) for m in modes) or
+                                    len(set(modes)) != len(modes) or not set(modes) <= declared_modes):
+                                raise Fault("invalid_profile", "Video choices require unique installed owner launch modes")
+                    if identifier(camera.get("default_choice")) not in ids:
+                        raise Fault("invalid_profile", "Select a declared default video choice")
+                    if declared_modes and any(not any("active_modes" not in c or mode in c["active_modes"] for c in choices)
+                                              for mode in declared_modes if not camera.get("required_mode") or mode == camera["required_mode"]):
+                        raise Fault("invalid_profile", "Every supported owner launch needs a video choice")
+                elif "default_choice" in camera:
+                    raise Fault("invalid_profile", "A default choice requires ROS video choices")
+                for choice in choices:
+                    topic = text(choice["topic"], 240)
+                    if not topic.startswith("/") or "//" in topic or not all(c.isalnum() or c in "_/" for c in topic):
+                        raise Fault("invalid_profile", "Video topic must be an absolute ROS name")
                 if type(camera["domain_id"]) is not int or not 0 <= camera["domain_id"] <= 232:
                     raise Fault("invalid_profile", "Invalid video ROS domain")
                 if camera.get("required_mode") and camera["required_mode"] not in {m["id"] for m in units[provider].get("launch_modes", [])}:
@@ -121,7 +150,7 @@ def current_target(core, capability, *, fresh=False):
     unit = next(u for u in status["units"] if u["unit_id"] == service["unit_id"])
     if not status["fresh"] or unit["lifecycle"] != "running" or unit["ownership"] != "owned" or unit.get("stop_request_id"):
         raise Fault("av_unavailable", "Start the declared video/input service before connecting")
-    source_run = None
+    source_run = source_mode = None
     source = service.get("source", {})
     if source.get("kind") == "ros":
         provider = next(u for u in status["units"] if u["unit_id"] == source["owner_unit"])
@@ -130,8 +159,9 @@ def current_target(core, capability, *, fresh=False):
                 or (source.get("required_mode") and mode.get("id") != source["required_mode"])):
             raise Fault("av_unavailable", "The configured camera owner and image mode must be running")
         source_run = provider["run_id"]
+        source_mode = mode.get("id")
     return dict(id=service["id"], kind=service["kind"], unit_id=service["unit_id"], run_id=unit["run_id"],
-                config_revision=core.revision, generation=core.generation, source_run=source_run,
+                config_revision=core.revision, generation=core.generation, source_run=source_run, source_mode=source_mode,
                 socket=str(socket_path(core.store.directory, capability, unit["run_id"])))
 
 

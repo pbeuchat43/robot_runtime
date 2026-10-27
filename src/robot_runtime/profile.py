@@ -181,6 +181,10 @@ def validate(value, *, check_paths=True):
     if "ros" in result:
         from .ros_profile import validate as validate_ros
         result["ros"] = validate_ros(result["ros"], set(units), check_paths=check_paths)
+        for topic in result["ros"]["topics"]:
+            declared = {mode["id"] for mode in units[topic["unit_id"]].get("launch_modes", [])}
+            if not set(topic.get("active_modes", [])) <= declared:
+                raise Fault("invalid_ros_profile", "Topic active modes must name installed launches of its owner")
         for snapshot in result["ros"].get("snapshots", []):
             mode = snapshot.get("required_mode")
             if mode and mode not in {item["id"] for item in units[snapshot["unit_id"]].get("launch_modes", [])}:

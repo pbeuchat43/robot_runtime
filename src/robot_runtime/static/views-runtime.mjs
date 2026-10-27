@@ -36,9 +36,10 @@ export function mountObservations(root, {observations, topics, title = 'Observat
     cards.append(card);
     subscriptions.push(observations.subscribe(({snapshot, connection}) => {
       const value = snapshot?.topics.find(topic => topic.id === spec.id);
-      badge.className = `badge ${value?.fresh ? 'live' : 'warning'}`;
-      badge.textContent = value?.fresh ? `Fresh · sequence ${value.sequence}` : value?.status || connection;
-      data.textContent = value?.data == null ? 'No sample' : JSON.stringify(value.data, null, 2);
+      const inactive = value?.status === 'inactive';
+      badge.className = `badge ${value?.fresh ? 'live' : inactive ? '' : 'warning'}`;
+      badge.textContent = inactive ? 'Not selected in this run' : value?.fresh ? `Fresh · sequence ${value.sequence}` : value?.status || connection;
+      data.textContent = inactive ? 'No processing requested for this selection.' : value?.data == null ? 'No sample' : JSON.stringify(value.data, null, 2);
     }, {topics: [spec.id]}));
   }
   if (!topics.length) cards.append(element('p', 'This profile has no matching observation capabilities.'));

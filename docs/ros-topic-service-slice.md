@@ -22,6 +22,14 @@ The optional `ros` profile block has its own schema version. It declares exact t
 
 One ROS worker serves all adapters. A topic has one upstream subscription regardless of viewer count; no subscription exists without demand from a CLI watcher or visible browser view. Pause, hide and disconnect release delivery and eventually the subscription. ROS graph discovery is a fixed worker cost when ROS is configured; it starts no application workloads. Latest observations replace older ones in bounded queues. Raw CDR size is checked before deserialization, and projected JSON has a separate byte budget. These application bounds do not limit memory already used inside DDS for incoming data.
 
+A topic may declare `active_modes`: one to eight unique installed launch IDs of
+its owning unit. When a live owned run selects another mode, the topic reports
+`inactive`, `fresh: false`, and no sample data; it has no upstream subscription.
+The reference views display **Not selected in this run** instead of implying a
+provider failure. Omitting this optional field preserves applicability to every
+launch. Stopped, unowned or stale runs keep the existing unavailable semantics.
+Profiles using this field require runtime 0.1.0.dev21 or later.
+
 Samples carry a worker and subscription generation, sequence, monotonic receipt time, explicit age/freshness and middleware source timestamp when provided. Plain scalar messages have no acquisition timestamp or spatial frame. A connection heartbeat does not refresh a sample. Stops, run changes, ambiguous graph endpoints and worker loss invalidate applicable samples. Graph identity constrains routing; it does not authenticate an OS process or prove that a ROS endpoint belongs to a cgroup.
 
 Services share durable request UUIDs with existing operations. They require the profile revision, expected run and current ROS worker generation. The manager re-audits ownership immediately before authorizing the worker's dispatch; the worker checks the declared graph target and request deadline. One service request may be pending at a time, with no waiting queue. A response is correlated to its request; an optional success field distinguishes acceptance from refusal. Timeouts do not cancel remote execution. An uncertain request blocks further service requests to that run until local acknowledgement or a new run; acknowledgement does not replay or rewrite the old outcome.

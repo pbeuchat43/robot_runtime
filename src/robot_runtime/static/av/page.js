@@ -11,6 +11,7 @@ import {mountControl} from './components/control-panel.js';
 import {mountVideo} from './components/video-view.js';
 import {mountStreamSettings} from './components/stream-settings.js';
 import {mountSourceControls} from './components/source-controls.js';
+import {mountCameraPicker} from './components/camera-picker.js';
 
 const mode = location.pathname.slice(1), $ = id => document.getElementById(id);
 const wantsMedia = mode !== 'input', wantsInput = mode !== 'video';
@@ -42,6 +43,7 @@ function mount(kind) {
   const api = new RuntimeAVApi({http: clients.http, capability});
   const client = kind === 'media' ? new MediaClient({api}) : new ControlClient({api, input});
   const views = kind === 'media' ? [mountVideo($('video'), {media: client}),
+    mountCameraPicker($('overlay-choice'), {api, media: client, declared: true}),
     mountStreamSettings($('settings'), {api})] : [mountControl($('receipt'), {control: client})];
   compositions.set(kind, {api, client, views}); renderServices();
 }
