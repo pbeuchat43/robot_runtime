@@ -1,0 +1,125 @@
+{
+  "package_version": "0.1.0.dev22",
+  "unit_tests": 147,
+  "unit_log_sha256": "e90831b356c4e049ecc9c582b76117e12817580078fbee5104613fe11aac7905",
+  "browser_passed": true,
+  "browser_checks": [
+    {
+      "name": "inert construction, explicit intent, shared ownership and teardown",
+      "passed": true
+    },
+    {
+      "name": "selection replaces baseline, missing/empty data, obsolete callbacks and lossless integers",
+      "passed": true
+    },
+    {
+      "name": "receipt/acquisition/sample deadlines, delayed timers and reconnect invalidation",
+      "passed": true
+    },
+    {
+      "name": "runtime and resource freshness stay distinct from process/sample data",
+      "passed": true
+    },
+    {
+      "name": "inactive model status requires a current observation connection",
+      "passed": true
+    },
+    {
+      "name": "listener isolation and synchronous transport lifecycle changes",
+      "passed": true
+    },
+    {
+      "name": "SSE routing, native/closed retries, malformed JSON and cancelled callbacks",
+      "passed": true
+    },
+    {
+      "name": "multiplexed channels, per-topic ages, filtered views and reconnect baseline",
+      "passed": true
+    },
+    {
+      "name": "HTTP explicit requests, CSRF, mount boundary and command uncertainty without replay",
+      "passed": true
+    },
+    {
+      "name": "HTTP cancellation before dispatch, in flight, timeout and disposal",
+      "passed": true
+    },
+    {
+      "name": "real EventSource/fetch loads selected packaged modules and releases demand",
+      "passed": true
+    },
+    {
+      "name": "transient media renewal retries the same subscription without dropping its transport",
+      "passed": true
+    },
+    {
+      "name": "unconfirmed media renewal stops at its deadline including browser suspension",
+      "passed": true
+    },
+    {
+      "name": "media authorization and source rejections disconnect immediately",
+      "passed": true
+    },
+    {
+      "name": "obsolete media renewal completion cannot change a new connection",
+      "passed": true
+    },
+    {
+      "name": "overlay switching revokes video without restarting the detector owner",
+      "passed": true
+    },
+    {
+      "name": "explicit video reconnect awaits a fresh binding even when hidden-tab polling paused",
+      "passed": true
+    },
+    {
+      "name": "selected restart requires confirmed cleanup and never continues after uncertainty or cancellation",
+      "passed": true
+    },
+    {
+      "name": "independent source selectors keep requested and resolved configurations separate",
+      "passed": true
+    },
+    {
+      "name": "AV packets sample the device without animation frames; timeout and focus still pause",
+      "passed": true
+    },
+    {
+      "name": "AV controller rendering is deferred, skips unchanged DOM, and releases pending paint",
+      "passed": true
+    },
+    {
+      "name": "AV receipt and video views preserve unchanged text and immediately reflect pause",
+      "passed": true
+    }
+  ],
+  "cleanup_errors": [],
+  "module_sha256": {
+    "client-core.mjs": "29557a3de7fe4a7a3ecd97ddbe0bd93fa970f1fe07195fada6323780199aacb1",
+    "client-http.mjs": "3d4be8124577c9e997beb7cdca8992395d1b4a94026848fa47a40de8673bed2f",
+    "client-sse.mjs": "7c399e0543e277663e3e66626434577ec3351c904c463ecb14f874741681f4e2",
+    "client-stream.mjs": "ff8d4f58412ae72da0478f56a7e4d5bb300cf89657c04f1f631ad928beffc116",
+    "client-multiplex.mjs": "d6b33b1ca218013f524c02014eb413f34b7616a7fd358542fc31821d6e197f42",
+    "client-page.mjs": "eb3e1aa99b4f73209492b4fea62ffaee281ad43cd606574e5cf7514690b360e1",
+    "launch-control.mjs": "8e2d1171abab548fd959725c39b6a15db64e287fc4bb6ce3b3cab05ae65ff595",
+    "av/core.js": "8331f64bf9723bd575e4bad3180e2fe03a4266aca92d2369c7bf6f4be9ae1467",
+    "av/runtime-api.js": "521f33520ee21789b9cded87c1cc25f39d64c9d3a57181248dec6f17941dac9e",
+    "av/media-client.js": "8e54b31b2c7f53db3b65d70a82b27c6294ae039d7ad4186803f93a8e1f4849b9",
+    "av/freshness.js": "8d7453c4b7115cd4177aff9dc26f05da6c732a8e1211b7c91ed1c6f3142634ba",
+    "av/control-client.js": "b9761ca71635186cca5da58ca4530c17ee0aa97e750b40a752d23cb50437d5f2",
+    "av/gamepad-input.js": "4b15da04b8b7a65c13ff3be16f667d4220abb95cf735adf774765f9224cf6a72",
+    "av/gamepad-art.js": "11b77d9f6b93120f986d8aeafb93cf96063ad0bdd7b1ca1f3a1f4b7de09656f8",
+    "av/components/gamepad-view.js": "038a819040e54c7b27a411a1cf46008c2f5a1632ddac9d64cea74988d7be674c",
+    "av/components/control-panel.js": "6f69538f55838da7525b18373b7c2a0da67f40829bdadcc0f022d2857d67c35b",
+    "av/components/video-view.js": "1d294a5a843a13dcd92e724392e8a8928a024a54bbbdd701147955a761480787",
+    "av/components/source-controls.js": "e4a536fda21665269983837bceaf1baad674098b4aaa3b7c6b1605abd4d560f5",
+    "av/components/camera-picker.js": "5778ee3f8d07b494ce22cce633e0c24662ebc698e44c9ce6c5c4dbfc7d78df24"
+  },
+  "wheel_sha256": "31d7f06c3bafe3623965af373bbbf87cda8b91e914fc8411fd5e196489cb35fd",
+  "package_files_verified": 100,
+  "unchanged_native_files": 1038,
+  "limitations": [
+    "Browser renewal errors and clock suspension are injected fixtures; they do not reproduce radio interference.",
+    "Initial browser fixture omitted a signalling URL; its failure was retained and the corrected fixture rerun."
+  ]
+}

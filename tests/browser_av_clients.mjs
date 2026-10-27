@@ -16,7 +16,83 @@ const assert = (condition, message) => { if (!condition) throw Error(message); }
 const frame = () => new Promise(resolve => requestAnimationFrame(resolve));
 const settle = () => new Promise(resolve => setTimeout(resolve, 80));
 
+async function renewableMedia() {
+  let at = 1000, nextToken = 0;
+  const calls = [], config = {settings: {change_id: 0, applying: false}, ice_servers: [], stamp: false};
+  const api = {state: {online: true, host: {settings: config.settings}}, async request(route, body, options) {
+    calls.push({route, body, options});
+    if (route === 'media/sessions') return {token: `token-${++nextToken}`, ttl_s: 20, profile: 'observer'};
+    if (route === 'media/renew') return api.renew?.();
+    if (route === 'config') return config;
+  }};
+  const media = new MediaClient({api, now: () => at, signallingUrl: 'wss://fixture.invalid', signallingFactory: async () => ({close() {},
+    api: {registerConnectionListener() {}, registerPeerListener() {}, getAvailableProducers: () => []}})});
+  media.attachVideo({srcObject: null, cancelVideoFrameCallback() {}});
+  await media.connect();
+  return {media, api, calls, time(value) { at = value; }};
+}
+
 export async function runAV(test) {
+  await test('transient media renewal retries the same subscription without dropping its transport', async () => {
+    const {media, api, calls, time} = await renewableMedia(), signalling = media.signalling;
+    try {
+      api.renew = () => { throw Object.assign(Error('Network timeout'), {code: 'transport_error'}); };
+      time(8000); await media.tick();
+      assert(media.want && signalling && media.signalling === signalling, 'A single network failure keeps the current viewer');
+      time(8500); await media.tick();
+      assert(calls.filter(c => c.route === 'media/renew').length === 1, 'Retry is paced');
+      api.renew = () => ({}); time(9000); await media.tick();
+      assert(media.want && media.leaseUntil === 29000, 'Confirmed renewal extends the lease from request dispatch');
+      assert(calls.filter(c => c.route === 'media/renew').every(c => c.body.token === 'token-1' && c.options.timeout <= 3000),
+        'Renewals retain their token and use a short timeout');
+      assert(calls.filter(c => c.route === 'media/sessions').length === 1 && !calls.some(c => c.route === 'media/close'),
+        'No new admission or subscription close');
+    } finally { media.dispose(); }
+  });
+  await test('unconfirmed media renewal stops at its deadline including browser suspension', async () => {
+    for (const suspended of [false, true]) {
+      const {media, api, calls, time} = await renewableMedia();
+      try {
+        api.renew = () => { throw Object.assign(Error('Offline'), {code: 'transport_error'}); };
+        if (!suspended) {
+          time(8000); await media.tick(); time(20500); await media.tick();
+          assert(calls.filter(c => c.route === 'media/renew').at(-1).options.timeout === 500, 'Timeout fits remaining lease');
+        }
+        const renewals = calls.filter(c => c.route === 'media/renew').length;
+        time(21000); await media.tick(); time(22000); await media.tick();
+        assert(!media.want && media.state.error.includes('deadline expired'), 'Expiry requires explicit Connect');
+        assert(calls.filter(c => c.route === 'media/renew').length === renewals, 'No renewal at or after expiry');
+        assert(calls.filter(c => c.route === 'media/sessions').length === 1, 'No automatic admission');
+      } finally { media.dispose(); }
+    }
+  });
+  await test('media authorization and source rejections disconnect immediately', async () => {
+    for (const code of ['unauthorized', 'forbidden', 'stale_run', 'stale_source', 'expired']) {
+      const {media, api, calls, time} = await renewableMedia();
+      try {
+        api.renew = () => { throw Object.assign(Error(code), {code}); };
+        time(8000); await media.tick();
+        assert(!media.want && media.state.error.includes(code), `${code}: no retry of authority rejection`);
+        assert(calls.filter(c => c.route === 'media/close').length === 1, 'Rejected subscription is closed');
+      } finally { media.dispose(); }
+    }
+  });
+  await test('obsolete media renewal completion cannot change a new connection', async () => {
+    for (const failed of [false, true]) {
+      const {media, api, time} = await renewableMedia(); let finish;
+      try {
+        api.renew = () => new Promise((resolve, reject) => { finish = () => failed ?
+          reject(Object.assign(Error('Old rejection'), {code: 'expired'})) : resolve({}); });
+        time(8000); const oldTick = media.tick();
+        media.disconnect(); time(9000); await media.connect();
+        const deadline = media.leaseUntil;
+        finish(); await oldTick;
+        assert(media.want && media.token === 'token-2' && media.leaseUntil === deadline && !media.state.error,
+          `Old ${failed ? 'failure' : 'success'} changed the new subscription: ${JSON.stringify({want: media.want,
+            token: media.token, deadline, actualDeadline: media.leaseUntil, error: media.state.error})}`);
+      } finally { media.dispose(); }
+    }
+  });
   await test('overlay switching revokes video without restarting the detector owner', async () => {
     const root = document.body.appendChild(document.createElement('div')), calls = [];
     const config = {source_selection: {id: 'cones', revision: 4, choices: [

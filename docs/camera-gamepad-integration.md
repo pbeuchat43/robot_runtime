@@ -43,6 +43,14 @@ Input packets additionally retain their sequence/epoch checks and short receipt
 expiry. Reconnection requires a new explicit input connection and enable action.
 The input receiver produces diagnostics only and has no actuator/ROS publisher.
 
+A video transport can reconnect while its existing media subscription is valid.
+A network failure during renewal retains that subscription and retries after one
+second, with each request bounded to three seconds or the remaining lease window.
+Only a confirmed renewal extends the local deadline. Deadline expiry, rejected
+authorization, runtime changes and source changes require explicit Connect video;
+the browser never automatically requests a replacement subscription. The backend
+still enforces expiry independently, including after browser suspension.
+
 ## Browser composition
 
 The existing clients and views remain importable without starting work. The page

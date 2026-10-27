@@ -21,7 +21,8 @@ export class MediaClient {
       freshness: {fresh: false, age: null, arrivalAge: null, reason: 'No video connection'}, clock: null});
     this.users = 0; this.generation = 0; this.transportGeneration = 0; this.video = null; this.closed = false;
     this.want = false; this.connecting = false; this.session = null; this.signalling = null; this.producer = null;
-    this.token = null; this.renewAt = 0; this.config = null; this.clock = null; this.lastFrame = null;
+    this.token = null; this.renewAt = this.leaseUntil = this.leaseTtl = 0;
+    this.config = null; this.clock = null; this.lastFrame = null;
     this.content = null; this.displayed = 0; this.samples = []; this.reports = []; this.previous = null;
     this.stampAttempts = this.stampValid = this.uploadErrors = 0; this.frameCallback = null;
     this.sessionHandlers = []; this.intervals = []; this.settingsChange = null;
@@ -96,8 +97,9 @@ export class MediaClient {
       if (!this.want || generation !== this.generation) {
         this.api.request('media/close', {token: grant.token}).catch(() => {}); return;
       }
-      this.token = grant.token; this.renewAt = this.now() + grant.ttl_s * 1000 / 3;
-      this.renewEvery = grant.ttl_s * 1000 / 3;
+      this.token = grant.token; this.leaseTtl = grant.ttl_s * 1000;
+      this.leaseUntil = this.now() + this.leaseTtl;
+      this.renewEvery = this.leaseTtl / 3; this.renewAt = this.now() + this.renewEvery;
       this.profile = profile;
       this.config = await this.api.request('config');
       this.settingsChange = this.config.settings.change_id;
@@ -207,11 +209,30 @@ export class MediaClient {
   async tick() {
     if (!this.want || this.ticking) return;
     this.ticking = true;
+    const generation = this.generation, token = this.token;
+    const current = () => this.want && generation === this.generation && token === this.token;
+    const lost = message => {
+      this.disconnect(); this.publish({error: `Media subscription lost: ${message}. Reconnect to retry.`});
+    };
     try {
-      if (this.token && this.now() >= this.renewAt) {
-        try { await this.api.request('media/renew', {token: this.token}); this.renewAt = this.now() + this.renewEvery; }
-        catch (error) { this.disconnect(); this.publish({error: `Media subscription lost: ${error.message}. Reconnect to retry.`}); return; }
+      if (token && this.now() >= this.leaseUntil) { lost('renewal deadline expired'); return; }
+      if (token && this.now() >= this.renewAt) {
+        const sent = this.now();
+        try {
+          // Renew only the existing token. Bound a transient retry by the last
+          // confirmed lease; never replay admission or resurrect an expired one.
+          await this.api.request('media/renew', {token}, {timeout: Math.min(3000, this.leaseUntil - sent)});
+          if (!current()) return;
+          this.leaseUntil = sent + this.leaseTtl;
+          if (this.now() >= this.leaseUntil) { lost('renewal response arrived too late'); return; }
+          this.renewAt = this.now() + this.renewEvery;
+        } catch (error) {
+          if (!current()) return;
+          if (error.code !== 'transport_error' || this.now() >= this.leaseUntil) { lost(error.message); return; }
+          this.renewAt = Math.min(this.now() + 1000, this.leaseUntil);
+        }
       }
+      if (!current()) return;
       if (!this.clock || this.now() - this.clock.at >= this.config.clock_sync_interval_ms) this.calibrate();
       if (!this.api.state.host?.settings?.applying && !this.signalling) await this.openSignalling();
       if (this.producer && !this.session) this.startSession();
