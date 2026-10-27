@@ -175,3 +175,7 @@ choice and needs the corresponding `x264enc` plugin.
 ## Verification
 
 Unit tests cover admission, sessions, signaling, and input freshness. Packaged Chromium checks use synthetic video and controller packets with prepared native dependencies. They do not establish physical input, camera support, or driving acceptance. See the [test runbook](../tests/README.md#camera-and-diagnostic-gamepad).
+
+[The dev21 source-choice evidence](evidence/2026-10-28-video-source-choices/README.md)
+records launch applicability, revision checks, session revocation and explicit
+reconnection, including the retained-source behavior when observations disconnect.
