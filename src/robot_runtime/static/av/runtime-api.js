@@ -22,6 +22,7 @@ export class RuntimeAVApi {
     }
     const config = this.state.config || await this.request('config');
     const identity = config.runtime;
+    if (route === 'media/sessions' && config.source_selection) body = {...body, source_revision: config.source_selection.revision};
     return this.http.post(this.path + route, {request_id: crypto.randomUUID(),
       expires_at_ms: Math.floor(config.server_time_ms + performance.now() - config.received_at) + Math.min(timeout, 55000), config_revision: identity.config_revision,
       generation: identity.generation, expected_run: identity.run_id, source_run: identity.source_run,

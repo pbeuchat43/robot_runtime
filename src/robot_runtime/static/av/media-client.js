@@ -60,6 +60,9 @@ export class MediaClient {
     if (this.want && this.config?.runtime && JSON.stringify(this.config.runtime) !== JSON.stringify(config.runtime)) {
       this.disconnect(); this.publish({error: 'Runtime ownership changed. Connect explicitly again.'});
     }
+    if (this.want && this.config?.source_selection?.revision !== config.source_selection?.revision) {
+      this.disconnect(); this.publish({error: 'Video source changed. Connect video again.'});
+    }
     this.config = config;
     const settings = host?.settings || config.settings;
     if (this.settingsChange === null) this.settingsChange = settings.change_id;

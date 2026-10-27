@@ -64,6 +64,10 @@ class RosRuntime:
             return None
         return run
 
+    @staticmethod
+    def topic_active(spec, run):
+        return "active_modes" not in spec or (run.get("launch_mode") or {}).get("id") in spec["active_modes"]
+
     def snapshot(self, selected=None, *, catalog=True):
         chosen = set(self.topics) if selected is None else set(selected)
         now = self.core.clock()
@@ -76,8 +80,9 @@ class RosRuntime:
             if key not in chosen:
                 continue
             run = live.get(spec["unit_id"])
+            inactive = bool(run and not self.topic_active(spec, run))
             sample = self.samples.get(key, {}) if self.ready else {}
-            if not run or sample.get("run_id") != run["run_id"]:
+            if not run or inactive or sample.get("run_id") != run["run_id"]:
                 sample = {}
             received = sample.get("received_monotonic")
             age = max(0, now - received) if received is not None else None
@@ -98,7 +103,9 @@ class RosRuntime:
                          acquisition_timestamp=(sample.get("data") or {}).get("acquisition_timestamp_ns"),
                          acquisition_age_seconds=acquisition_age, sample_age_seconds=sample_age, progress_age_seconds=progress_age,
                          projection=spec.get("projection"), source_clock="rmw_source_timestamp", receipt_clock="host_monotonic")
-            if not self.ready:
+            if inactive:
+                value.update(status="inactive", run_id=run["run_id"], fresh=False)
+            elif not self.ready:
                 value["status"] = "worker_unavailable"
             elif not run:
                 value["status"] = "runtime_unavailable"
@@ -191,7 +198,7 @@ class RosRuntime:
         bindings = {}
         for key in desired:
             run = self.live_run(self.topics[key]["unit_id"])
-            if run:
+            if run and self.topic_active(self.topics[key], run):
                 bindings[key] = run["run_id"]
         if bindings != self.bindings:
             self.samples = {key: value for key, value in self.samples.items() if bindings.get(key) == value.get("run_id")}

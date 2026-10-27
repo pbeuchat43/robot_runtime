@@ -10,12 +10,38 @@ import {mountControl} from '/assets/av/components/control-panel.js';
 import {mountVideo} from '/assets/av/components/video-view.js';
 import {changeLaunch} from '/assets/launch-control.mjs';
 import {mountSourceControls} from '/assets/av/components/source-controls.js';
+import {mountCameraPicker} from '/assets/av/components/camera-picker.js';
 
 const assert = (condition, message) => { if (!condition) throw Error(message); };
 const frame = () => new Promise(resolve => requestAnimationFrame(resolve));
 const settle = () => new Promise(resolve => setTimeout(resolve, 80));
 
 export async function runAV(test) {
+  await test('overlay switching revokes video without restarting the detector owner', async () => {
+    const root = document.body.appendChild(document.createElement('div')), calls = [];
+    const config = {source_selection: {id: 'cones', revision: 4, choices: [
+      {id: 'cones', label: 'Cones', available: true}, {id: 'coco', label: 'COCO 80', available: true}]},
+      runtime: {source_run: 'unchanged'}, settings: {applying: false, change_id: 0}};
+    const events = observable({online: true, config, host: {settings: config.settings, camera: {
+      devices: [], selected: 'cones', discovery: {}, warnings: [], state: 'idle'}}});
+    const api = {get state() { return events.state; }, subscribe: fn => events.subscribe(fn), acquire: () => () => {},
+      request: async (route, body) => calls.push({route, body}), refresh: async () => {}};
+    const media = new MediaClient({api}); media.config = config;
+    const picker = mountCameraPicker(root, {api, media, declared: true});
+    try {
+      const device = root.querySelector('[data-ref=device]');
+      device.value = 'coco'; device.dispatchEvent(new Event('change')); await settle();
+      assert(calls.some(c => c.route === 'camera' && c.body.id === 'coco' && c.body.source_revision === 4), 'Selection bound to observed source revision');
+      assert(calls.every(c => !c.route.includes('start') && !c.route.includes('stop')), 'No detector lifecycle operation');
+      media.want = true;
+      media.backend({online: true, config: {...config, source_selection: {...config.source_selection, id: 'coco', revision: 5}}, host: {}});
+      assert(!media.want && media.state.error.includes('Video source changed'), 'Other viewer must explicitly reconnect');
+      assert(!calls.some(c => c.route === 'media/sessions'), 'No admission replay');
+      events.publish({...events.state, config: {...config, source_selection: {...config.source_selection,
+        choices: config.source_selection.choices.map(c => ({...c, available: c.id === 'cones'}))}}});
+      assert(device.options[1].disabled, 'Inactive model cannot be selected');
+    } finally { picker.destroy(); media.dispose(); root.remove(); }
+  });
   await test('explicit video reconnect awaits a fresh binding even when hidden-tab polling paused', async () => {
     let releaseConfig;
     const gate = new Promise(resolve => { releaseConfig = resolve; }), posts = [];

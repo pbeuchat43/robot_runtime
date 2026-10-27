@@ -157,6 +157,19 @@ export async function run() {
       release();
     }
   });
+  await test('inactive model status requires a current observation connection', () => {
+    const {client, transport, connect} = fixture();
+    const release = client.acquire(); connect();
+    transport.send(observations([topic('cones', {status: 'inactive', fresh: false, data: null, age_seconds: null})]));
+    equal(client.state.snapshot.topics[0].status, 'inactive', 'Live run explicitly excludes this model');
+    transport.sessions[0].emit({type: 'disconnected'});
+    equal(client.state.snapshot.topics[0].status, 'disconnected', 'Lost connection cannot keep asserting the selected mode');
+    transport.sessions[0].emit({type: 'connected'});
+    equal(client.state.snapshot.topics[0].status, 'disconnected', 'Reconnect needs a new baseline');
+    transport.send(observations());
+    assert(client.state.snapshot.topics[0].fresh, 'New active model baseline replaces inactive state');
+    release();
+  });
   await test('listener isolation and synchronous transport lifecycle changes', () => {
     const {client, transport, connect} = fixture();
     let errors = 0, received = 0;
