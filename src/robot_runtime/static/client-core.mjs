@@ -67,7 +67,9 @@ export function snapshotAt(channel, source, elapsed, connected) {
         for (const key of ['age_seconds', 'acquisition_age_seconds', 'sample_age_seconds']) {
           if (value[key] !== null) expire(limit - value[key]);
         }
-      } else if (value.status === 'current') value.status = connected ? 'stale' : 'disconnected';
+      } else if (value.status === 'current' || (value.status === 'inactive' && !connected)) {
+        value.status = connected ? 'stale' : 'disconnected';
+      }
       return value;
     });
   } else {
