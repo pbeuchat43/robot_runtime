@@ -1,10 +1,19 @@
 # Verification
 
-The current selectable-source development push is recorded in
+The earlier selectable-source development push is recorded in
 [RGB-D viewer verification, 27 October 2026](evidence/2026-10-27-rgbd-viewer/README.md).
 It adds 142-test and packaged-browser evidence plus component integration in the
-sibling `robot_composition` repository. The initial standalone baseline below
+sibling `robot_deployment` repository (then named `robot_composition`). The initial standalone baseline below
 remains historical evidence for unchanged behavior.
+
+The shared CLI, prepared restart, maintenance guard and native dependency builder
+are covered by the [3 November deployment verification](../../robot_deployment/docs/evidence/2026-11-03-deployment/README.md).
+The [4 November everyday-installation record](../../robot_deployment/docs/evidence/2026-11-04-everyday/README.md)
+adds a complete permanent build, both-camera checks and management restart with
+application workloads left stopped on Jah. Those records identify the exact
+tested sources and artifacts. Fresh-image/Nano qualification remains open;
+broader operational robustness testing is deferred until more of the system is
+complete. The initial-snapshot results below retain their original scope.
 
 ## Initial snapshot verification
 
@@ -33,7 +42,7 @@ The cleanup audit checked 45 candidate services, found no remaining candidate pr
 
 The package records identify the artifacts actually used for execution. Documentation and evidence were assembled afterwards, so source distributions built from the final repository may have different archive hashes. Runtime and fixture identities are bound by the source hash manifests; final packaging checks compare installed package bytes against these files. Dependency wheels and private host-preservation audits remain in local artifacts.
 
-## Limits
+## Initial snapshot limits
 
 These checks establish selected software behavior on the recorded host. They do not establish physical camera/controller/vehicle behavior, five remote browsers, loaded perception performance, boot/logout persistence, stable-release resource targets, or broader hardware support. No new physical hardware acceptance or deployment was performed. The optional external-bridge and independent IMU integration suites were not rerun for these changes; their reusable tests remain available, with IMU unit coverage included in the full unit suite.
 

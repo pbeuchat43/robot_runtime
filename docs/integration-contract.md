@@ -4,6 +4,22 @@ This document defines responsibilities and required semantics for the [repositor
 
 ## Platform boundary
 
+Deployment owners may use `robot_runtime.maintenance.stopped(state, backup=...)`
+while their management service is stopped. It holds the exclusive manager lock,
+rejects retained workload ownership and unresolved transitions, checks the
+runtime-owned state schema and optionally creates a SQLite backup. It never
+replays processes or migrates state. Deployment first obtains an audited stopped
+observation; the lock closes the race between that observation and selection.
+Profile/release rollback does not restore or replay historical runs.
+
+The component-owned `deployment/build-av-native.py` builds pinned WebRTC and
+Rust RTP plugins against installed GStreamer 1.24.2. It uses hash-verified crate
+archives, their unchanged Cargo locks, and an isolated Rust 1.90.0 toolchain.
+Host packages remain deployment-owned. The result is an independent native
+prefix with factory/link checks and source/output manifests; these checks do
+not establish camera or browser performance. The existing copy helper retains
+its historical sysroot interface and additionally accepts `--system-root /`.
+
 ```mermaid
 flowchart TD
     D[Deployment tooling and robot profile] --> R[Shared runtime application logic]
@@ -26,7 +42,12 @@ These boxes describe logical responsibilities, not a mandatory process topology.
 
 `robot_runtime` owns its supported installation interface, configuration schema, service definitions, diagnostics, and uninstall/upgrade behavior. An installation must be usable independently on a prepared ROS 2 host. Installed code and browser assets must not depend on a particular source checkout or an Internet service during operation.
 
-The deployment integrator supplies the selected release and a validated robot profile. In the [research architecture](research-platform-architecture.md), `robot_composition` selects the system and `robot_installer` provisions it. The profile supplies:
+The deployment integrator supplies the selected release and a validated robot
+profile. Composition and installation are logical responsibilities within
+`robot_deployment`, following the
+[deployment design](../../robot_deployment/docs/design/2026-11-01-robot-deployment-design.md).
+The [research architecture](research-platform-architecture.md) summarizes current
+ownership and retains the earlier component proposals. The profile supplies:
 
 - The robot identity, runtime account, runtime namespace, and state/log/config locations.
 - Available runtime units and their launch composition: executable/launch references, resolved environment, arguments, dependencies where applicable, and graceful-stop expectations.
@@ -39,6 +60,22 @@ Validation must report unsupported versions, malformed profiles, missing depende
 Package version, public API version, profile schema version and persistent-state version are distinct. Compatibility rules and migrations must be explicit. Release metadata must declare the tested OS/architecture/ROS/browser matrix and dependency requirements. Ubuntu/Jetson is the initial target; additional platforms need evidence before support is claimed.
 
 Management startup validates configuration and state compatibility without launching application workloads. Updates and incompatible migrations require an explicit maintenance window with workloads stopped; recovering management after a crash must not migrate live workload state implicitly. Configuration persistence is separate from live ROS parameter editing.
+
+A unit may declare a trusted, finite preparation command. The manager invokes it
+outside its serialized policy thread, with the selected unit/profile/mode in
+`ROBOT_RUNTIME_PREPARE_*` context. It returns a schema-1 candidate naming up to
+eight ordinary input files (256 KiB each, 1 MiB total) and their SHA-256 hashes.
+Runtime validates the target and freezes copies in private state before any
+stop/start. Inputs are opaque to runtime; component validation belongs in the
+preparer. Supervisor context supplies `ROBOT_RUNTIME_PREPARED` and its SHA-256;
+the component uses `robot_runtime.prepared.run_inputs()` to validate/read it.
+
+Restart reserves the unit while stopping its exact old run and starting the
+prepared replacement. Failed or uncertain stop prevents replacement. Management
+recovery reconciles already-dispatched work but never resumes a pending
+replacement dispatch. Operation results expose old/new run IDs and an input
+identity, not private file contents/paths. Start acceptance remains distinct
+from readiness; a replacement observed failed is reported as a failed restart.
 
 ## Runtime lifecycle and authority
 

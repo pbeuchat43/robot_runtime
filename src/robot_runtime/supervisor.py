@@ -53,6 +53,9 @@ def launch_argv(run):
     # Clear the user manager's inherited environment, including ROS settings.
     # env execs the target in place; Type=exec acknowledges this trusted wrapper.
     env = dict(run["spec"]["environment"], ROBOT_RUNTIME_RUN=run["run_id"])
+    if run.get("prepared"):
+        env.update(ROBOT_RUNTIME_PREPARED=run["prepared"]["path"],
+                   ROBOT_RUNTIME_PREPARED_SHA256=run["prepared"]["sha256"])
     return ["/usr/bin/env", "-i", *[f"{k}={v}" for k, v in sorted(env.items())], *run["spec"]["argv"]]
 
 

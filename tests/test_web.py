@@ -112,6 +112,18 @@ class WebTests(unittest.IsolatedAsyncioTestCase):
         response = await self.client.get("/assets/client-private.mjs", headers=self.headers)
         self.assertEqual(response.status, 404)
 
+    async def test_restart_shares_authorization_and_cannot_supply_private_inputs(self):
+        body = dict(request_id="request", expires_at_ms=123, config_revision="rev", expected_run="old")
+        result = await self.client.post("/api/units/worker/restart", json=body, headers=self.headers)
+        self.assertEqual(result.status, 401)
+        token, session = self.adapter.auth.issue()
+        headers = dict(self.headers, Cookie=COOKIE + "=" + token, **{"X-CSRF-Token": session["csrf"]})
+        result = await self.client.post("/api/units/worker/restart", json=body, headers=headers)
+        self.assertEqual(result.status, 202)
+        self.assertEqual(self.calls[-1], ("restart", dict(unit_id="worker", actor="browser:" + session["id"], **body)))
+        result = await self.client.post("/api/units/worker/restart", json=dict(body, prepared={"path": "/private"}), headers=headers)
+        self.assertEqual(result.status, 400)
+
     async def test_resource_cached_view_does_not_activate_monitoring(self):
         response = await self.client.get("/api/resources?history=true", headers=self.headers)
         self.assertEqual(response.status, 200)

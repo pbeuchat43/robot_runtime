@@ -6,7 +6,7 @@ Description=Robot runtime manager
 
 [Service]
 Type=simple
-ExecStart=%h/.local/share/robot-runtime/venv/bin/robot-runtime-manager --profile %h/.config/robot_runtime/profile.json --state %h/.local/state/robot_runtime
+ExecStart=%h/.local/share/robot-runtime/venv/bin/python -m robot_runtime.manager --profile %h/.config/robot_runtime/profile.json --state %h/.local/state/robot_runtime
 Restart=on-failure
 RestartSec=2
 UMask=0077

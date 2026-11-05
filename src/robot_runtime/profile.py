@@ -1,6 +1,7 @@
 """Versioned, bounded launch profiles. Browser callers cannot supply these."""
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Paul N. Beuchat
+import copy
 import hashlib
 import math
 import os
@@ -46,7 +47,7 @@ def select_launch(unit, mode_id=None):
     mode = next((item for item in unit.get("launch_modes", []) if item["id"] == mode_id), None)
     if mode_id is not None and (not isinstance(mode_id, str) or mode is None):
         raise Fault("invalid_request", "Unknown launch mode")
-    spec = dict(unit, argv=mode["argv"]) if mode else dict(unit)
+    spec = copy.deepcopy(dict(unit, argv=mode["argv"]) if mode else unit)
     check_launch(spec)
     return spec, mode
 
@@ -108,7 +109,7 @@ def validate(value, *, check_paths=True):
             text(source["unavailable_reason"], 512)
         else:
             fields(source, ("id", "label", "argv", "working_directory", "environment", "stop"),
-                   ("requires_running", "public_logs", "available", "launch_modes", "conflicts", "launch_selections", "default_launch_mode"))
+                   ("requires_running", "public_logs", "available", "launch_modes", "conflicts", "launch_selections", "default_launch_mode", "preparation"))
         unit = dict(source)
         identifier(unit["id"])
         if unit["id"] in units:
@@ -118,6 +119,12 @@ def validate(value, *, check_paths=True):
             units[unit["id"]] = unit
             continue
         launch_argv(unit["argv"])
+        if "preparation" in unit:
+            fields(unit["preparation"], ("argv", "timeout_seconds"))
+            launch_argv(unit["preparation"]["argv"])
+            timeout = unit["preparation"]["timeout_seconds"]
+            if type(timeout) not in (int, float) or not math.isfinite(timeout) or not .1 <= timeout <= 5:
+                raise Fault("invalid_profile", "Preparation requires a finite 0.1–5 second deadline")
         modes = unit.get("launch_modes", [])
         if not isinstance(modes, list) or len(modes) > 8:
             raise Fault("invalid_profile", "Declare at most eight launch modes")
@@ -160,6 +167,8 @@ def validate(value, *, check_paths=True):
             raise Fault("invalid_profile", "Conflicts must be unique other units")
         if check_paths:
             check_launch(unit)
+            if "preparation" in unit:
+                check_launch(dict(unit, argv=unit["preparation"]["argv"]))
             for mode in modes:
                 check_launch(dict(unit, argv=mode["argv"]))
         units[unit["id"]] = unit
@@ -202,8 +211,19 @@ def check_launch(unit):
         raise Fault("invalid_profile", "Executable or working directory is unavailable", unit_id=unit["id"])
 
 
-def read(path):
+def read(path, *, check_paths=True):
     path = Path(path)
     if path.stat().st_size > 262144:
         raise Fault("invalid_profile", "Profile exceeds 256 KiB")
-    return validate(loads(path.read_bytes()))
+    return validate(loads(path.read_bytes()), check_paths=check_paths)
+
+
+def catalog(path):
+    """Read declared units/modes without probing installed executables or IPC."""
+    config, revision = read(path, check_paths=False)
+    return dict(robot_id=config["robot_id"], config_revision=revision, units=[
+        dict(unit_id=unit["id"], label=unit["label"], available=unit.get("available", True),
+             unavailable_reason=unit.get("unavailable_reason"),
+             launch_modes=[public_mode(mode) for mode in unit.get("launch_modes", [])],
+             launch_selections=unit.get("launch_selections", []),
+             default_launch_mode=unit.get("default_launch_mode")) for unit in config["units"]])

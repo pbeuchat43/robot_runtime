@@ -6,6 +6,7 @@ import time
 import uuid
 
 from .common import Fault, dumps, fields, text
+from . import prepared
 from .profile import public_mode, select_launch
 from .supervisor import owns
 
@@ -20,7 +21,7 @@ def request_id(value):
 
 
 def public_operation(operation):
-    return {k: v for k, v in operation.items() if k not in ("fingerprint", "actor")}
+    return {k: v for k, v in operation.items() if k not in ("fingerprint", "actor", "replacement", "continue_restart")}
 
 
 class Core:
@@ -31,7 +32,9 @@ class Core:
         self.runs = {run["run_id"]: run for run in store.runs()}
         self.operations = {op["request_id"]: op for op in store.operations()}
         previous = store.meta("profile_revision")
-        if previous and previous != revision and any(run["blocked"] for run in self.runs.values()):
+        if previous and previous != revision and (any(run["blocked"] for run in self.runs.values()) or
+                any(op["action"] == "restart" and op["phase"] in ("prepared", "in_progress", "outcome_unknown")
+                    for op in self.operations.values())):
             raise Fault("maintenance_required", "Changing profiles requires all runs resolved and stopped")
         namespace = store.meta("namespace")
         if namespace and namespace != profile["namespace"]:
@@ -48,6 +51,10 @@ class Core:
         self.foreign = []
         self.ros = None
         self.on_change = lambda: None
+        for operation in self.operations.values():
+            if operation["action"] == "restart" and operation.get("stage") == "stopping" and operation["phase"] in ("prepared", "in_progress", "outcome_unknown"):
+                # A new manager can reconcile a stop but cannot resume dispatch.
+                self._save_operation(operation, continue_restart=False, phase="outcome_unknown")
 
     def changed(self):
         self.version += 1
@@ -57,7 +64,8 @@ class Core:
         self.error = "Supervisor connection unavailable"
         for operation in self.operations.values():
             if operation["phase"] in ("prepared", "in_progress"):
-                self._save_operation(operation, phase="outcome_unknown")
+                self._save_operation(operation, phase="outcome_unknown", **(
+                    dict(continue_restart=False) if operation["action"] == "restart" else {}))
         self.changed()
 
     def connected(self, supervisor):
@@ -114,6 +122,9 @@ class Core:
         now = self.clock()
         changed = False
         for operation in self.operations.values():
+            if operation["action"] == "restart":
+                changed |= self._finish_restart(operation)
+                continue
             if operation["action"] not in ("start", "stop"):
                 continue
             if operation["phase"] not in ("prepared", "in_progress", "outcome_unknown"):
@@ -142,13 +153,63 @@ class Core:
                     changed |= self._save_operation(operation, phase="timed_out", outcome="stop_deadline_exceeded")
         return changed
 
+    def _finish_restart(self, operation):
+        if operation["phase"] not in ("prepared", "in_progress", "outcome_unknown"):
+            return False
+        if operation["stage"] == "stopping":
+            old = self.runs[operation["old_run_id"]]
+            observed = self.observations.get(old["run_id"]) or old.get("terminal")
+            stopped = (observed and owns(old, observed) and not observed["members"] and not old["blocked"]
+                       and old["boot_id"] == operation["boot_id"]
+                       and observed["observed_monotonic"] <= operation["deadline_monotonic"])
+            if operation["boot_id"] != self.boot:
+                return self._save_operation(operation, phase="failed", outcome="interrupted_by_reboot")
+            if not stopped:
+                if self.clock() >= operation["deadline_monotonic"]:
+                    return self._save_operation(operation, phase="timed_out", outcome="stop_deadline_exceeded")
+                if old["lifecycle"] in ("outcome_unknown", "ownership_conflict"):
+                    return self._save_operation(operation, phase="outcome_unknown", continue_restart=False)
+                return False
+            if not operation.get("continue_restart") or operation["phase"] != "in_progress":
+                return self._save_operation(operation, phase="failed", outcome="stopped_without_replacement")
+            replacement = operation["replacement"]
+            try:
+                # Check current prerequisites, but dispatch the already frozen spec.
+                if self.foreign:
+                    raise Fault("ownership_conflict", "Conflicting supervisor ownership prevents replacement")
+                self._launch(operation["unit_id"], replacement["launch_mode"]["id"] if replacement["launch_mode"] else None)
+                if replacement.get("prepared"):
+                    prepared.load(replacement["prepared"])
+            except (Fault, OSError):
+                return self._save_operation(operation, phase="failed", outcome="replacement_inputs_unavailable")
+            operation.update(stage="starting", run_id=replacement["run_id"], new_run_id=replacement["run_id"], delivery="unknown")
+            # Durable intent and ownership precede dispatch, including the stop/start gap.
+            self.store.save(run=replacement, operation=operation)
+            self.runs[replacement["run_id"]] = replacement
+            try:
+                self.supervisor.start(replacement)
+                self._save_operation(operation, delivery="acknowledged")
+            except Exception:
+                self._save_operation(operation, phase="outcome_unknown", continue_restart=False)
+            return True
+        run = self.runs[operation["new_run_id"]]
+        observed = self.observations.get(run["run_id"]) or run.get("terminal")
+        if observed and owns(run, observed) and observed["ActiveState"] != "activating":
+            return self._save_operation(operation, phase="failed" if run["lifecycle"] == "failed" else "complete",
+                delivery="observed", outcome="replacement_" + run["lifecycle"])
+        if run["lifecycle"] == "interrupted_by_reboot":
+            return self._save_operation(operation, phase="failed", outcome="interrupted_by_reboot")
+        if run["lifecycle"] in ("outcome_unknown", "ownership_conflict"):
+            return self._save_operation(operation, phase="outcome_unknown")
+        return False
+
     def progress(self):
         if self._finish_operations():
             self.changed()
 
     def needs_progress(self):
-        return any(op["action"] in ("start", "stop") and (op["phase"] in ("prepared", "in_progress") or
-                   op["action"] == "stop" and op["phase"] == "outcome_unknown" and op.get("boot_id") == self.boot)
+        return any(op["action"] in ("start", "stop", "restart") and (op["phase"] in ("prepared", "in_progress") or
+                   op["action"] in ("stop", "restart") and op["phase"] == "outcome_unknown" and op.get("boot_id") == self.boot)
                    for op in self.operations.values())
 
     def audit(self, *, full=False):
@@ -194,6 +255,9 @@ class Core:
             item["default_launch_mode"] = unit.get("default_launch_mode")
             item["launch_mode"] = run.get("launch_mode") if run else None
             item["start_blocked_by"] = self._start_conflicts(unit["id"])
+            transition = self._reservation(unit["id"])
+            if transition:
+                item["transition_request_id"] = transition["request_id"]
             observed = self.observations.get(run["run_id"]) if run else None
             if not observed and run and not run["blocked"]:
                 observed = run.get("terminal")
@@ -219,7 +283,11 @@ class Core:
 
     def _start_conflicts(self, unit_id):
         return [name for name in self.units[unit_id].get("conflicts", [])
-                if (run := self.current(name)) and run["blocked"]]
+                if ((run := self.current(name)) and run["blocked"]) or self._reservation(name)]
+
+    def _reservation(self, unit_id):
+        return next((op for op in self.operations.values() if op["action"] == "restart" and op["unit_id"] == unit_id
+                     and op["phase"] in ("prepared", "in_progress", "outcome_unknown")), None)
 
     def _require_available(self, *, starting=False):
         self.audit(full=True)
@@ -239,10 +307,44 @@ class Core:
                 raise Fault("precondition", "A prerequisite is not running", unit_id=dependency)
         return spec, mode
 
-    def command(self, request, actor):
+    def preparation_target(self, request):
+        """Select a trusted preparer; invocation occurs outside the policy thread."""
+        if type(request.get("version")) is not int or request["version"] != 1:
+            raise Fault("protocol_version", "Expected IPC version 1")
+        rid = request_id(request.get("request_id"))
+        if rid in self.operations or "prepared" in request:
+            return None
+        if request.get("config_revision") != self.revision:
+            raise Fault("stale_config", "Profile revision changed")
+        spec, mode = self._launch(text(request.get("unit_id"), 32), self._requested_mode(request))
+        if "preparation" not in spec:
+            return None
+        return dict(unit_id=spec["id"], config_revision=self.revision, mode=mode["id"] if mode else None,
+                    preparation=spec["preparation"], environment=spec["environment"], working_directory=spec["working_directory"])
+
+    def _requested_mode(self, request):
+        if "mode" in request or request.get("action") != "restart":
+            return request.get("mode")
+        current = self.current(request["unit_id"])
+        return current["launch_mode"]["id"] if current and current.get("launch_mode") else None
+
+    def _new_run(self, unit_id, mode_id, candidate):
+        spec, mode = self._launch(unit_id, mode_id)
+        reference = prepared.freeze(candidate, self.store.directory, unit_id, self.revision, mode["id"] if mode else None) if candidate is not None else None
+        if "preparation" in spec and reference is None:
+            raise Fault("invalid_prepared", "This unit requires prepared launch inputs")
+        run_id = uuid.uuid4().hex
+        run = dict(run_id=run_id, unit_id=unit_id, name=self.prefix + unit_id + "-" + run_id + ".service",
+                   boot_id=self.boot, invocation=None, lifecycle="prepared", blocked=True,
+                   spec=spec, config_revision=self.revision, launch_mode=public_mode(mode))
+        if reference:
+            run["prepared"] = reference
+        return run
+
+    def command(self, request, actor, prepared_candidate=None):
         action = request["action"]
         fields(request, ("version", "action", "unit_id", "request_id", "expires_at_ms", "config_revision"),
-               ("expected_run", "mode"))
+               ("expected_run", "mode", "prepared"))
         unit_id = text(request["unit_id"], 32)
         if unit_id not in self.units:
             raise Fault("not_found", "Unknown runtime unit")
@@ -254,8 +356,12 @@ class Core:
                 raise Fault("request_conflict", "Request ID was used with different arguments")
             return public_operation(old)
         if "mode" in request:
-            if action != "start" or not isinstance(request["mode"], str):
-                raise Fault("invalid_request", "Only Start accepts a declared launch mode")
+            if action not in ("start", "restart") or not isinstance(request["mode"], str):
+                raise Fault("invalid_request", "Only Start/Restart accepts a declared launch mode")
+        if "prepared" in request and action not in ("start", "restart"):
+            raise Fault("invalid_request", "Only Start/Restart accepts prepared inputs")
+        if "prepared" in request and not isinstance(request["prepared"], dict):
+            raise Fault("invalid_prepared", "Prepared inputs must be a versioned object")
         self.store.capacity()
         expiry = request["expires_at_ms"]
         remaining = expiry - self.wall() * 1000 if type(expiry) is int else -1
@@ -266,19 +372,20 @@ class Core:
             raise Fault("stale_config", "Profile revision changed")
         if action == "start" and "expected_run" in request:
             raise Fault("invalid_request", "Start cannot carry an expected run")
-        if action in ("stop", "resolve") and not isinstance(request.get("expected_run"), str):
+        if action in ("stop", "resolve", "restart") and not isinstance(request.get("expected_run"), str):
             raise Fault("invalid_request", "Expected run is required")
-        self._require_available(starting=action == "start")
+        self._require_available(starting=action in ("start", "restart"))
+        reservation = self._reservation(unit_id)
+        resolving_restart = (reservation and action == "resolve" and reservation["phase"] == "outcome_unknown"
+                             and request.get("expected_run") == reservation["run_id"])
+        if reservation and not resolving_restart:
+            raise Fault("busy", "A restart owns this unit's transition", request_id=reservation["request_id"])
         current = self.current(unit_id)
+        replacement = None
         if action == "start":
             if current and current["blocked"]:
                 raise Fault("busy", "Existing run is populated or unresolved", run_id=current["run_id"])
-            spec, mode = self._launch(unit_id, request.get("mode"))
-            run_id = uuid.uuid4().hex
-            current = dict(run_id=run_id, unit_id=unit_id, name=self.prefix + unit_id + "-" + run_id + ".service",
-                           boot_id=self.boot, invocation=None, lifecycle="prepared", blocked=True,
-                           spec=spec, config_revision=self.revision,
-                           launch_mode=public_mode(mode))
+            current = self._new_run(unit_id, request.get("mode"), request.get("prepared", prepared_candidate))
         else:
             if not current or current["run_id"] != request["expected_run"]:
                 raise Fault("stale_run", "The requested run is no longer current")
@@ -291,27 +398,40 @@ class Core:
                 observed = self.observations.get(current["run_id"])
                 if not owns(current, observed):
                     raise Fault("outcome_unknown", "Cannot signal without current ownership evidence")
-                if any(op["action"] == "stop" and op["run_id"] == current["run_id"] for op in self.operations.values()):
+                if any(op["action"] in ("stop", "restart") and op.get("old_run_id", op["run_id"]) == current["run_id"] for op in self.operations.values()):
                     raise Fault("stop_already_requested", "This run already has a stop request; no automatic repeat is permitted")
+            if action == "restart":
+                if not current["blocked"]:
+                    raise Fault("precondition", "Restart requires a running owned run; use Start for a stopped unit")
+                replacement = self._new_run(unit_id, self._requested_mode(request), request.get("prepared", prepared_candidate))
         # A slow audit can consume the caller's expiry. Never dispatch an expired command.
         if self.wall() * 1000 >= expiry or self.clock() >= dispatch_deadline:
             raise Fault("expired", "Command expired during validation")
         operation = dict(request_id=rid, action=action, unit_id=unit_id, run_id=current["run_id"],
                          fingerprint=fingerprint, actor=actor, phase="prepared", delivery="unknown",
                          created_at_ms=int(self.wall() * 1000))
-        if action == "stop":
+        if action in ("stop", "restart"):
             operation["deadline_monotonic"] = self.clock() + current["spec"]["stop"]["timeout_seconds"]
             operation["boot_id"] = self.boot
             current["stop_request_id"] = rid
+        if current.get("prepared") and action == "start":
+            operation["prepared_identity"] = current["prepared"]["identity"]
+        if action == "restart":
+            operation.update(old_run_id=current["run_id"], new_run_id=None, stage="stopping",
+                replacement=replacement, continue_restart=True)
+            if replacement.get("prepared"):
+                operation["prepared_identity"] = replacement["prepared"]["identity"]
         self.store.save(run=current, operation=operation)
         self.runs[current["run_id"]] = current
         self.operations[rid] = operation
         try:
             if action == "start":
                 self.supervisor.start(current)
-            elif action == "stop" and current["blocked"]:
+            elif action in ("stop", "restart") and current["blocked"]:
                 self.supervisor.signal(current)
             elif action == "resolve":
+                if resolving_restart:
+                    self._save_operation(reservation, phase="failed", outcome="missing_run_resolved_without_replay")
                 self._save_run(current, blocked=False, lifecycle="resolved_missing")
                 self._save_operation(operation, phase="complete", delivery="not_applicable", outcome="absence_resolved")
                 self.changed()
@@ -324,12 +444,12 @@ class Core:
             self.audit(full=True)
         except Exception:
             # Includes reply loss after dispatch. Never replay it during recovery.
-            self._save_operation(operation, phase="outcome_unknown")
+            self._save_operation(operation, phase="outcome_unknown", **(dict(continue_restart=False) if action == "restart" else {}))
             self.error = "Command outcome needs reconciliation"
             self.changed()
         return public_operation(operation)
 
-    def handle(self, request, actor="local"):
+    def handle(self, request, actor="local", *, prepared_candidate=None):
         if not isinstance(request, dict) or type(request.get("version")) is not int or request["version"] != 1:
             raise Fault("protocol_version", "Expected IPC version 1")
         action = request.get("action")
@@ -344,8 +464,8 @@ class Core:
             return current_target(self, text(request["capability_id"], 32), fresh=request.get("fresh", False))
         if isinstance(action, str) and action.startswith("ros_") and self.ros:
             return self.ros.handle(request, actor)
-        if action in ("start", "stop", "resolve"):
-            return self.command(request, actor)
+        if action in ("start", "stop", "resolve", "restart"):
+            return self.command(request, actor, prepared_candidate)
         if action == "prepare_launch":
             fields(request, ("version", "action", "unit_id", "config_revision"), ("mode",))
             if request["config_revision"] != self.revision:
@@ -380,5 +500,8 @@ class Core:
             run = self.runs.get(text(request["run_id"], 32))
             if not run:
                 raise Fault("not_found", "No retained run with this ID")
-            return {k: run.get(k) for k in ("run_id", "unit_id", "name", "invocation", "boot_id", "lifecycle", "blocked", "config_revision")}
+            result = {k: run.get(k) for k in ("run_id", "unit_id", "name", "invocation", "boot_id", "lifecycle", "blocked", "config_revision")}
+            if run.get("prepared"):
+                result["prepared_identity"] = run["prepared"]["identity"]
+            return result
         raise Fault("invalid_request", "Unsupported action")

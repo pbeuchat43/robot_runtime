@@ -15,8 +15,8 @@ The canonical repository is [pbeuchat43/robot_runtime](https://github.com/pbeuch
 | Owner | Responsibility |
 | --- | --- |
 | `robot_runtime` | Runtime lifecycle and observations; shared command logic and CLI; browser API, client support and reference UI; authentication and pairing; configurable ROS access; runtime configuration schemas and supported installation interfaces |
-| `robot_composition` | Select compatible versions, profiles, launch topology, transforms, and integrated acceptance |
-| `robot_installer` | Provision the host and invoke component installation, upgrade, and recovery interfaces |
+| `robot_deployment` composition | Select compatible versions, profiles, launch topology, transforms, and integrated acceptance |
+| `robot_deployment` installation | Provision the host and invoke component installation, upgrade, and recovery interfaces |
 | Robot component repositories | Drivers, perception, policy, vehicle behavior, firmware, ROS interfaces, parameter validation, and component-specific health/readiness definitions |
 | Activity-specific websites | Experiences for particular demonstrations or outreach activities, using the shared platform interfaces and permissions |
 
@@ -92,7 +92,12 @@ Measure the cone-only case separately during the first release. ROS application 
 
 The development implementation includes supervision, shared commands, authenticated browser access, declared ROS interfaces, bounded snapshots, and optional media/input services. A stable release still requires documented host/browser support, installation/recovery acceptance, and evidence for its sizing and resource targets.
 
-Integrations select a release and supply profiles through `robot_composition` and `robot_installer`. Changes to existing deployments require explicit maintenance scope, compatible configuration/state handling, and rollback. No existing deployment is implicitly migrated by development in this repository.
+Integrations select a release and supply profiles through `robot_deployment`.
+Its [agreed design](../../robot_deployment/docs/design/2026-11-01-robot-deployment-design.md)
+supersedes the earlier two-repository proposal. Changes to existing deployments
+require explicit maintenance scope, compatible configuration/state handling,
+and rollback. No existing deployment is implicitly migrated by development in
+this repository.
 
 All execution tests run on `jah` using isolated resources. Synthetic tests do not establish hardware or vehicle behavior. Hardware validation needs a defined setup and scope. API, configuration, and persistent-state versions belong to `robot_runtime`; incompatible migrations must be explicit.
 

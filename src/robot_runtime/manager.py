@@ -16,7 +16,7 @@ from pathlib import Path
 from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GLib
 
-from . import journal, profile
+from . import journal, prepared, profile
 from .common import Fault, dumps, fields, loads, text
 from .core import Core
 from .ipc import MAX_REQUEST, MAX_RESPONSE
@@ -174,6 +174,10 @@ class Handler(socketserver.StreamRequestHandler):
                 fields(request, ("version", "action", "run_id"), ("limit", "cursor"))
                 target = dispatcher.call(lambda: dispatcher.core.handle(dict(version=request["version"], action="log_target", run_id=request["run_id"])))
                 result = journal.read(target, limit=request.get("limit", 100), cursor=request.get("cursor"))
+            elif request.get("action") in ("start", "restart"):
+                target = dispatcher.call(lambda: dispatcher.core.preparation_target(request))
+                candidate = prepared.execute(target) if target else None
+                result = dispatcher.call(lambda: dispatcher.core.handle(request, actor, prepared_candidate=candidate))
             else:
                 result = dispatcher.call(lambda: dispatcher.core.handle(request, actor))
             self.send(dict(ok=True, result=result))

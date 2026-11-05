@@ -3,8 +3,8 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "robot-runtime"
-version = "0.1.0.dev22"
+name = "robot_runtime"
+version = "0.1.0.dev24"
 description = "Explicit systemd runtime management and authenticated browser access"
 requires-python = ">=3.12"
 license = {file = "LICENSE"}
@@ -18,6 +18,11 @@ Repository = "https://github.com/pbeuchat43/robot_runtime"
 web = ["aiohttp==3.14.4"]
 
 [project.scripts]
+robot_runtime = "robot_runtime.cli:main"
+robot_runtime_manager = "robot_runtime.manager:main"
+robot_runtime_web = "robot_runtime.web:main"
+robot_runtime_av = "robot_runtime.av.worker:main"
+# Compatibility for supported installations using the pre-deployment spelling.
 robot-runtime = "robot_runtime.cli:main"
 robot-runtime-manager = "robot_runtime.manager:main"
 robot-runtime-web = "robot_runtime.web:main"

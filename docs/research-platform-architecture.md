@@ -1,13 +1,17 @@
 # Research robot platform architecture
 
-This document records the agreed repository boundaries and proposed camera/perception contracts. Components and interfaces described as proposed are not claims about the current implementation.
+This document records current repository ownership followed by the original
+camera/perception architecture proposals. The accepted
+[deployment design](../../robot_deployment/docs/design/2026-11-01-robot-deployment-design.md)
+combines composition and installation in `robot_deployment`, continuing the
+history of `robot_composition`; a separate `robot_installer` is no longer planned.
+`robot_runtime`, `rgbd_camera`, `rgbd_object_detector` and activity-specific
+`robot_web` remain separate owners.
 
-The six accepted repository names are `robot_runtime`, `robot_composition`,
-`robot_installer`, `rgbd_camera`, `rgbd_object_detector` and `robot_web`.
-`rgbd_camera` is a separate repository for acquisition shared by perception and
-video. OAK-D is the first camera target; RealSense may be introduced during that
-development or afterwards to exercise the same interfaces. The process layout
-below is the recommended initial implementation, subject to measurement.
+OAK-D and D455 now have component and integrated perception evidence in the
+camera/detector/deployment repositories. Later sections retain the earlier
+recommendations, including ArUco, on-device inference and native-buffer work;
+they are not claims that every proposed provider or optimization is implemented.
 
 The [charter](repository-charter.md) and [integration contract](integration-contract.md) define the runtime's lifecycle, authorization, and freshness requirements.
 
@@ -16,15 +20,14 @@ The [charter](repository-charter.md) and [integration contract](integration-cont
 | Repository | Owns | Interfaces with |
 | --- | --- | --- |
 | `robot_runtime` | Process supervision, command policy, observations, CLI, authenticated browser API, reusable browser clients, reference UI, media session coordination and future driving authority | Robot profiles, component readiness/commands, OS supervisor and media workers |
-| `robot_composition` | Reproducible system selections, exact component/model versions, named robot/scenario profiles, launch topology, configuration, mounting transforms and integration acceptance | Installer input and runtime/component configuration |
-| `robot_installer` | Host preparation, dependency/toolchain installation, fetching/building selected sources, invoking component installers, upgrades and recovery | Versioned composition manifests and component installation interfaces |
+| `robot_deployment` | Reproducible component/model selections, robot geometry, named configurations, launch topology, delegated startup inputs, host preparation, build/install orchestration, common CLI, upgrades/rollback and integration acceptance | Component-owned build/install interfaces and runtime's prepared-launch, profile and stopped-maintenance contracts |
 | `rgbd_camera` | Camera discovery/selection, exclusive device session, capture/depth configuration, calibration, synchronization, frame delivery and reusable provider adapters | ROS image interfaces and an internal frame/provider API |
 | `rgbd_object_detector` | Model descriptors, inference adapters, 2D detection, depth association, spatial estimates and the first cone model/profile | Camera contract in; detections and processing status out |
 | `robot_web` | Autonomous, outreach and FPV experiences, page composition and presentation | Versioned runtime browser clients/API and admitted media sessions |
 | Other component repositories | ArUco, vehicle interfaces, policy, other sensors and firmware; their algorithms, configuration validation and readiness | Their documented ROS and hardware interfaces |
 
-`robot_composition` chooses what is installed and how it runs. `robot_installer`
-executes that selection; it does not quietly resolve a different set of versions.
+`robot_deployment` chooses what is installed and how it runs, then executes that
+selection without quietly resolving a different set of versions.
 Each component retains a standalone installation interface and declares its own
 dependencies. The installer coordinates those interfaces rather than accumulating
 copies of component build logic. Local credentials and per-device secrets stay
@@ -46,10 +49,8 @@ versions; avoid a general collection of unrelated robot messages.
 
 ```mermaid
 flowchart TD
-    C[robot_composition] -->|versions and profiles| I[robot_installer]
-    I -->|installs and configures| R[robot_runtime]
-    I -->|installs selected components| P[Camera, perception, policy and vehicle components]
-    C -->|units, permissions and process layout| R
+    D[robot_deployment] -->|installs and prepares profiles| R[robot_runtime]
+    D -->|selects and installs components| P[Camera, perception, policy and vehicle components]
     R -->|lifecycle and declared commands| P
     P -->|state, readiness and small observations| R
     W[robot_web] <-->|shared browser API and clients| R
@@ -79,7 +80,7 @@ Closing the last viewer releases media resources without stopping perception tha
 another active workload needs. The composition defines camera dependencies and
 conflicts, including standalone video operation without an object detector.
 
-## Camera and processing components
+## Original camera and processing proposals
 
 The normal host-processing layout separates acquisition from its consumers:
 
@@ -101,7 +102,7 @@ supporting both composition and standalone execution. Keep reusable processing
 logic behind thin ROS adapters. This proposal concerns the image path; it does not
 require rewriting the Python runtime or all existing components in C++.
 
-Process layout belongs to `robot_composition`. ROS 2 supports choosing between
+Process layout belongs to `robot_deployment`. ROS 2 supports choosing between
 separate processes and components in a shared process at deployment time.
 [ROS 2 Jazzy composition documentation](https://github.com/ros2/ros2_documentation/blob/jazzy/source/Concepts/Intermediate/About-Composition.rst).
 

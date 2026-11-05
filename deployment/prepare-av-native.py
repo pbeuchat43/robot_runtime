@@ -20,6 +20,8 @@ def main():
     parser.add_argument('--runtime', required=True, type=Path)
     parser.add_argument('--sdk', type=Path, help='Optional site-packages containing depthai 3.9.0')
     parser.add_argument('--destination', required=True, type=Path)
+    parser.add_argument('--system-root', type=Path,
+                        help='Installed package root, normally /; defaults to the historical build sysroot')
     args = parser.parse_args()
     if sys.version_info[:2] != (3, 12) or os.uname().machine != 'aarch64':
         parser.error('This artifact preparation is for CPython 3.12 on aarch64')
@@ -27,15 +29,16 @@ def main():
     if root.exists():
         parser.error('Choose a new destination; existing native prefixes are immutable')
     runtime = args.runtime.resolve()
+    system_root = args.system_root.resolve() if args.system_root else runtime / 'sysroot'
     pairs = [(runtime / 'target/release/libgstrswebrtc.so', root / 'gstreamer/libgstrswebrtc.so'),
              (runtime / 'target/release/libgstrsrtp.so', root / 'gstreamer/libgstrsrtp.so'),
-             (runtime / 'sysroot/usr/lib/aarch64-linux-gnu/gstreamer-1.0/libgstnice.so', root / 'gstreamer/libgstnice.so')]
+             (system_root / 'usr/lib/aarch64-linux-gnu/gstreamer-1.0/libgstnice.so', root / 'gstreamer/libgstnice.so')]
     pairs.append((Path(__file__).resolve().parents[1] / 'src/robot_runtime/static/av/vendor/LICENSE-MPL-2.0',
                   root / 'licenses/gst-plugins-rs-MPL-2.0'))
-    overrides = runtime / 'sysroot/usr/lib/python3/dist-packages/gi/overrides'
+    overrides = system_root / 'usr/lib/python3/dist-packages/gi/overrides'
     pairs += [(source, root / 'gi' / source.name) for source in overrides.iterdir() if source.is_file()]
     for name in ('python3-gst-1.0', 'gstreamer1.0-nice'):
-        pairs.append((runtime / 'sysroot/usr/share/doc' / name / 'copyright', root / 'licenses' / name))
+        pairs.append((system_root / 'usr/share/doc' / name / 'copyright', root / 'licenses' / name))
     if args.sdk:
         sdk = args.sdk.resolve()
         metadata = sdk / 'depthai-3.9.0.dist-info/METADATA'

@@ -1,6 +1,6 @@
 # Runtime CLI and browser guide
 
-This guide covers development package `0.1.0.dev19` for Python 3.12, Ubuntu 24.04, systemd 255, and cgroup v2. It includes explicit lifecycle commands, authenticated browser access, [ROS capabilities](ros-operator-guide.md), [snapshots](snapshots.md), and [spatial observations](spatial-observations.md). Stable release and deployment acceptance remain separate work.
+This guide covers development package `0.1.0.dev23` for Python 3.12, Ubuntu 24.04, systemd 255, and cgroup v2. It includes explicit lifecycle commands, authenticated browser access, [ROS capabilities](ros-operator-guide.md), [snapshots](snapshots.md), and [spatial observations](spatial-observations.md). Stable release and deployment acceptance remain separate work.
 
 ## Standalone installation
 
@@ -12,7 +12,7 @@ Example installation, performed by the operator on a prepared host, with a previ
 
 ```sh
 python3 -m venv --system-site-packages ~/.local/share/robot-runtime/venv
-~/.local/share/robot-runtime/venv/bin/python -m pip install './robot_runtime-0.1.0.dev19-py3-none-any.whl[web]'
+~/.local/share/robot-runtime/venv/bin/python -m pip install './robot_runtime-0.1.0.dev23-py3-none-any.whl[web]'
 mkdir -p -m 700 ~/.config/robot_runtime ~/.local/state/robot_runtime
 ```
 
@@ -69,8 +69,8 @@ reserve hardware against processes launched outside the runtime.
 The runtime account is the manager's Linux UID. The launch wrapper is `/usr/bin/env -i` followed by the declared environment and executable argv; arbitrary manager/SSH environment is cleared. Supply required `PATH`, ROS variables and trusted setup wrappers explicitly. `ROBOT_RUNTIME_*` names are reserved. The wrapper `exec`s the provider in place; systemd's initial `Type=exec` acknowledgement concerns the wrapper, while provider failure is reported through subsequent exit evidence. Do not put secrets in profile argv/environment or provider logs. Web credential references are separate startup options; the optional `ros` block declares permitted ROS capabilities.
 
 ```sh
-~/.local/share/robot-runtime/venv/bin/robot-runtime validate ~/.config/robot_runtime/profile.json
-~/.local/share/robot-runtime/venv/bin/robot-runtime-manager \
+~/.local/share/robot-runtime/venv/bin/robot_runtime validate ~/.config/robot_runtime/profile.json
+~/.local/share/robot-runtime/venv/bin/robot_runtime_manager \
   --profile ~/.config/robot_runtime/profile.json --state ~/.local/state/robot_runtime
 ```
 
@@ -78,23 +78,62 @@ The manager creates a private state directory and Unix socket. Starting it launc
 
 ## CLI workflow
 
-The `robot-runtime` entry point defaults to `~/.local/state/robot_runtime` (or the corresponding `XDG_STATE_HOME` location). Use `--state DIRECTORY` before the subcommand for another installation.
+The `robot_runtime` entry point defaults to `~/.local/state/robot_runtime` (or the corresponding `XDG_STATE_HOME` location). Use `--state DIRECTORY` before the subcommand for another installation.
+
+Preferred service entry points are `robot_runtime_manager`, `robot_runtime_web`
+and `robot_runtime_av`. Previous hyphenated spellings remain compatibility aliases
+for existing installations. Internal service templates call neutral Python
+modules. `cli.configure_parser(parser)` and `cli.dispatch(args)` are the shared
+embedding interface; `cli.main(argv=None)` also accepts an explicit argument list.
 
 ```sh
-robot-runtime status
-robot-runtime start example
-robot-runtime start example --mode DECLARED_MODE_ID
-robot-runtime status --fresh
-robot-runtime logs RUN_ID --limit 100
-robot-runtime stop example --expected-run RUN_ID
-robot-runtime operation REQUEST_UUID
-robot-runtime inspect RUN_ID
-robot-runtime watch
+robot_runtime status
+robot_runtime start example
+robot_runtime start example --mode DECLARED_MODE_ID
+robot_runtime status --fresh
+robot_runtime catalog --profile ~/.config/robot_runtime/profile.json
+robot_runtime log example --follow
+robot_runtime logs example --follow
+robot_runtime logs RUN_ID --limit 100
+robot_runtime logs --run RUN_ID
+robot_runtime stop example
+robot_runtime stop example --expected-run RUN_ID
+robot_runtime restart example
+robot_runtime operation REQUEST_UUID
+robot_runtime inspect RUN_ID
+robot_runtime watch
 ```
 
 CLI output is JSON. A mutation prints its request ID to stderr before dispatch. Start completion establishes supervisor acceptance, not application readiness. Readiness is explicitly unavailable in this slice. `status` uses cached observations; `--fresh` audits the supervisor. Ownership-property age is separate from lifecycle observation age. Browser status keeps acquisition age across delivery/reconnection and becomes unavailable if observation is too old.
 
 Every accepted start gets a unique run ID and never-reused service name. A populated or unresolved run blocks replacement. Stop requires its expected run ID, sends one declared graceful signal to the cgroup and observes the deadline. It never escalates or repeats automatically. A timeout remains in operation history even if the provider subsequently exits. A launcher that forwards/escalates signals needs provider-specific validation; these mechanics do not prove ROS shutdown or physical stopping.
+
+For convenient Stop/Restart the CLI reads the current run once and submits that
+exact identity. A replaced run is rejected, never silently retargeted. `log` and
+`logs` are identical aliases. A unit selects its current/latest recorded run;
+`--run` explicitly selects historical identity. Follow stays bound to that run
+until Ctrl-C. Catalog reads local profile metadata without a manager or hardware.
+
+Restart retains the current mode unless `--mode` selects another declared mode.
+An optional profile `preparation: {argv: [...], timeout_seconds: 3}` invokes a
+trusted component command before Start/Restart. Its 0.1–5 second deadline and
+bounded output keep preparation separate from ordinary process supervision.
+Invalid preparation leaves the old run active. Accepted configuration is copied
+to private runtime state, so subsequent source edits cannot change the candidate.
+The exact old run must stop before its replacement starts; the operation records
+both run IDs. A failed or uncertain stop leaves the replacement unstarted.
+If management restarts during the stop, inspect the resulting operation and
+explicitly Start after ownership is resolved; pending replacements are never
+replayed. A missing replacement can be resolved through the ordinary guarded
+`resolve` operation, which also ends its restart reservation without replay.
+
+Standalone callers can instead supply `--prepared /absolute/candidate.json`.
+The schema is `{schema_version: 1, unit_id, config_revision, mode, inputs}`;
+`mode` is a declared ID or null, and `inputs` is a list of `{name, path, sha256}`.
+Preparation owns content validation; runtime checks the target, regular-file
+boundaries, byte limits and hashes. See the [integration contract](integration-contract.md).
+The authenticated browser API also accepts `POST /api/units/UNIT/restart` with
+the same request/run guards; it cannot supply private candidate files or commands.
 
 Status exposes declared selections/modes and the current run's persisted resolved
 `launch_mode`, including its selections. Changing a browser selector does not
@@ -107,7 +146,7 @@ source is ready; ownership changes revoke the previous media binding.
 
 After a lost response, query `operation REQUEST_UUID` and current status. Do not issue a new start merely because the response was lost. The CLI/API support explicit UUID and expiry fields; identical retained requests return their recorded operation, while reuse with different arguments fails. Clients never replay a mutation automatically. A new browser connection may resume observations and query operation IDs.
 
-If a run was collected before terminal evidence was saved, the runtime reports `outcome_unknown`. After inspection, `robot-runtime resolve UNIT --expected-run RUN_ID` permits the local operator to acknowledge a freshly verified absent service. It does not claim the launch never happened, rewrite its old operation or signal anything. This recovery action is deliberately absent from the browser adapter.
+If a run was collected before terminal evidence was saved, the runtime reports `outcome_unknown`. After inspection, `robot_runtime resolve UNIT --expected-run RUN_ID` permits the local operator to acknowledge a freshly verified absent service. It does not claim the launch never happened, rewrite its old operation or signal anything. This recovery action is deliberately absent from the browser adapter.
 
 History retains up to 5,000 operations without automatic eviction, preserving the deduplication boundary. At the limit, new mutations fail with `history_full`. Archive the stopped installation's complete state during explicit maintenance before creating a new installation. Never delete or replace state while any workload or ownership question remains. State schema 1 has no implicit migration.
 
@@ -141,7 +180,7 @@ The reference page supports unlock, start, observed status, bounded logs, gracef
 
 The wheel contains `robot_runtime/resources/robot-runtime-manager.service` and `robot-runtime-web.service`. Review their paths and replace the example origin before copying them to `~/.config/systemd/user/`. Only management services should be enabled. Workload services remain transient and have no dependency that propagates a manager/web stop.
 
-Use `robot-runtime inspect RUN_ID` to obtain the retained service name and invocation before Linux recovery, then compare them with fresh supervisor facts. Inspection returns retained identity, not permission to act on a changed service. Never infer ownership from a prefix alone. Ordinary inspection commands are:
+Use `robot_runtime inspect RUN_ID` to obtain the retained service name and invocation before Linux recovery, then compare them with fresh supervisor facts. Inspection returns retained identity, not permission to act on a changed service. Never infer ownership from a prefix alone. Ordinary inspection commands are:
 
 ```sh
 systemctl --user show EXACT_SERVICE_NAME \

@@ -2,7 +2,11 @@
 
 Read `README.md`, `docs/repository-charter.md`, and `docs/integration-contract.md` before changing behavior. They define scope, ownership, and operating policies. `docs/research-platform-architecture.md` records the agreed component boundaries and proposed camera/perception work.
 
-The package is `robot_runtime` (`robot-runtime` distribution and commands). The canonical repository is `https://github.com/pbeuchat43/robot_runtime`, configured as `origin`. `main` is the verified integration baseline; `dev` is for ongoing development.
+The package and preferred commands use `robot_runtime`; previous hyphenated
+console names remain compatibility aliases. Packaging normalizes distribution
+names independently of executable spelling. The canonical repository is
+`https://github.com/pbeuchat43/robot_runtime`, configured as `origin`. `main` is
+the verified integration baseline; `dev` is for ongoing development.
 
 - Keep this platform independently installable. Robot-specific deployment paths, providers, and configuration belong in profiles and integration repositories.
 - Preserve concurrent work. Changes to other repositories or existing deployments require their own scope.

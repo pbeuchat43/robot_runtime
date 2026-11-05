@@ -4,6 +4,7 @@
 import argparse
 import json
 import os
+import re
 import sys
 import time
 import uuid
@@ -13,11 +14,13 @@ from .common import Fault, loads
 from .ipc import request, watch
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Operate declared runtime units through the local manager")
+def configure_parser(parser):
+    """Attach the shared runtime grammar to a standalone or embedding parser."""
     parser.add_argument("--state", type=Path, default=Path(os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local/state"))) / "robot_runtime")
-    commands = parser.add_subparsers(dest="command", required=True)
-    status = commands.add_parser("status")
+    commands = parser.add_subparsers(dest="runtime_command", required=True)
+    catalog = commands.add_parser("catalog", help="List units and modes from a local profile; no manager or hardware access")
+    catalog.add_argument("--profile", required=True, type=Path, help="Installed runtime profile JSON")
+    status = commands.add_parser("status", help="Read lifecycle and ownership; --fresh audits the supervisor")
     status.add_argument("--fresh", action="store_true")
     commands.add_parser("watch")
     resources = commands.add_parser("resources", help="Read cached resource usage; --watch activates shared monitoring")
@@ -29,20 +32,27 @@ def main():
     operation.add_argument("request_id")
     inspect = commands.add_parser("inspect", help="Show retained supervisor identity for Linux recovery")
     inspect.add_argument("run_id")
-    logs = commands.add_parser("logs")
-    logs.add_argument("run_id")
-    logs.add_argument("--limit", type=int, default=100)
+    logs = commands.add_parser("logs", aliases=["log"], help="Read a unit's current/latest run or a retained run; log is identical")
+    logs.add_argument("target", nargs="?", help="Unit ID or retained run ID; reports the selected run")
+    logs.add_argument("--run", dest="run_id", help="Explicit historical run ID instead of a unit")
+    logs.add_argument("--limit", type=int, choices=range(1, 101), metavar="1..100", default=100)
     logs.add_argument("--cursor")
-    for action in ("start", "stop", "resolve"):
-        command = commands.add_parser(action)
+    logs.add_argument("--follow", "-f", action="store_true", help="Follow the selected run only; Ctrl-C ends the read")
+    for action in ("start", "stop", "restart", "resolve"):
+        command = commands.add_parser(action, help={
+            "start": "Start an explicitly selected unit; configured preparation runs first",
+            "stop": "Gracefully stop the exact current or supplied run; never force-kills",
+            "restart": "Validate inputs, stop the intended run, then start its replacement",
+            "resolve": "Resolve one absent supervisor service after explicit inspection"}[action])
         command.add_argument("unit_id")
         command.add_argument("--request-id")
         command.add_argument("--config-revision")
         command.add_argument("--expires-at-ms", type=int)
         if action != "start":
-            command.add_argument("--expected-run", required=True)
-        else:
+            command.add_argument("--expected-run", required=action == "resolve", help="Exact run guard; stop/restart resolve it when omitted")
+        if action in ("start", "restart"):
             command.add_argument("--mode", help="Choose an additional launch mode declared by the profile")
+            command.add_argument("--prepared", type=Path, help="Explicit versioned prepared-candidate JSON; otherwise use the profile's preparer")
     credential = commands.add_parser("credential", help="Create a new web credential file; prompts without echo")
     credential.add_argument("--file", type=Path, required=True)
     ros = commands.add_parser("ros", help="Observe declared ROS capabilities and operate services, parameters or actions")
@@ -96,9 +106,52 @@ def main():
     parameter_set.add_argument("--generation")
     parameter_set.add_argument("--config-revision")
     parameter_set.add_argument("--expires-at-ms", type=int)
-    args = parser.parse_args()
+    return parser
+
+
+def build_parser(*, prog=None):
+    return configure_parser(argparse.ArgumentParser(prog=prog,
+        description="Operate declared runtime units through the local manager. Mutations report a lookup request ID; acceptance is not readiness."))
+
+
+def select_run(status, unit_id):
+    unit = next((item for item in status["units"] if item["unit_id"] == unit_id), None)
+    if unit is None:
+        raise Fault("not_found", "Unknown runtime unit", unit_id=unit_id)
+    if not unit["run_id"]:
+        raise Fault("not_found", "This unit has no retained run", unit_id=unit_id)
+    return unit["run_id"]
+
+
+def log_pages(args):
+    if bool(args.target) == bool(args.run_id):
+        raise Fault("invalid_request", "Provide a unit/run target or --run RUN_ID")
+    run_id = args.run_id
+    if run_id is None:
+        status = request(args.state, "status")
+        if any(unit["unit_id"] == args.target for unit in status["units"]):
+            run_id = select_run(status, args.target)
+        elif re.fullmatch(r"[0-9a-f]{32}", args.target):
+            run_id = args.target
+        else:
+            raise Fault("not_found", "Unknown unit or run ID", target=args.target)
+    cursor = args.cursor
+    while True:
+        result = request(args.state, "logs", run_id=run_id, limit=args.limit, cursor=cursor)
+        yield dict(result, run_id=run_id)
+        if not args.follow:
+            return
+        cursor = result["next_cursor"]
+        time.sleep(0.5)
+
+
+def dispatch(args):
+    """Execute parsed runtime arguments, shared by standalone and deployment CLIs."""
     try:
-        if args.command == "ros":
+        if args.runtime_command == "catalog":
+            from .profile import catalog
+            result = catalog(args.profile)
+        elif args.runtime_command == "ros":
             if args.ros_command == "command":
                 status = request(args.state, "ros_status")
                 identifier = args.request_id or str(uuid.uuid4())
@@ -163,46 +216,54 @@ def main():
                 result = request(args.state, "ros_acknowledge", request_id=args.request_id, expected_run=args.expected_run)
             else:
                 result = request(args.state, "ros_status")
-        elif args.command == "resources":
+        elif args.runtime_command == "resources":
             if args.watch:
                 for result in watch(args.state, "resource_watch"):
                     print(json.dumps(result), flush=True)
                 return
             result = request(args.state, "resource_status", history=args.history)
-        elif args.command == "validate":
+        elif args.runtime_command == "validate":
             from .profile import read
             config, revision = read(args.profile)
             result = dict(valid=True, config_revision=revision, units=[unit["id"] for unit in config["units"]])
             if "ros" in config:
                 result["ros_interfaces"] = "Validated by the ROS worker at manager startup; inspect ros status"
-        elif args.command == "credential":
+        elif args.runtime_command == "credential":
             from .auth import create_credential
             create_credential(args.file)
             result = dict(created=True, path=str(args.file))
-        elif args.command == "watch":
+        elif args.runtime_command == "watch":
             for result in watch(args.state):
                 print(json.dumps(result), flush=True)
             return
-        elif args.command in ("start", "stop", "resolve"):
-            revision = args.config_revision or request(args.state, "status")["config_revision"]
+        elif args.runtime_command in ("start", "stop", "restart", "resolve"):
+            needs_run = args.runtime_command in ("stop", "restart") and args.expected_run is None
+            status = request(args.state, "status") if needs_run or not args.config_revision else None
+            revision = args.config_revision or status["config_revision"]
             identifier = args.request_id or str(uuid.uuid4())
             values = dict(unit_id=args.unit_id, request_id=identifier, config_revision=revision,
                           expires_at_ms=args.expires_at_ms if args.expires_at_ms is not None else int(time.time() * 1000) + 10000)
-            if args.command != "start":
-                values["expected_run"] = args.expected_run
-            elif args.mode is not None:
-                values["mode"] = args.mode
+            if args.runtime_command != "start":
+                values["expected_run"] = select_run(status, args.unit_id) if needs_run else args.expected_run
+            if args.runtime_command in ("start", "restart"):
+                if args.mode is not None:
+                    values["mode"] = args.mode
+                if args.prepared is not None:
+                    from .prepared import read_file
+                    values["prepared"] = loads(read_file(args.prepared.resolve(), maximum=16384))
             # Print before dispatch so a lost response never loses its lookup ID.
             print("Request ID: " + identifier, file=sys.stderr, flush=True)
-            result = request(args.state, args.command, **values)
-        elif args.command == "status":
+            result = request(args.state, args.runtime_command, **values)
+        elif args.runtime_command == "status":
             result = request(args.state, "status", fresh=args.fresh)
-        elif args.command == "operation":
+        elif args.runtime_command == "operation":
             result = request(args.state, "operation", request_id=args.request_id)
-        elif args.command == "inspect":
+        elif args.runtime_command == "inspect":
             result = request(args.state, "inspect", run_id=args.run_id)
         else:
-            result = request(args.state, "logs", run_id=args.run_id, limit=args.limit, cursor=args.cursor)
+            for result in log_pages(args):
+                print(json.dumps(result, indent=None if args.follow else 2), flush=True)
+            return
         print(json.dumps(result, indent=2))
     except KeyboardInterrupt:
         return
@@ -210,6 +271,10 @@ def main():
         result = exc.as_dict() if isinstance(exc, Fault) else dict(code="io_error", message=str(exc))
         print(json.dumps(dict(error=result)), file=sys.stderr)
         raise SystemExit(1)
+
+
+def main(argv=None):
+    return dispatch(build_parser().parse_args(argv))
 
 
 if __name__ == "__main__":

@@ -147,7 +147,7 @@ class BrowserAdapter:
     async def command(self, request):
         session = self.session(request, required=True, csrf=True)
         action = request.match_info["action"]
-        if action not in ("start", "stop", "prepare-launch"):
+        if action not in ("start", "stop", "restart", "prepare-launch"):
             raise Fault("not_found", "Unknown command")
         value = await self.body(request)
         if action == "prepare-launch":
