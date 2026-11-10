@@ -177,7 +177,8 @@ class Handler(socketserver.StreamRequestHandler):
             elif request.get("action") in ("start", "restart"):
                 target = dispatcher.call(lambda: dispatcher.core.preparation_target(request))
                 candidate = prepared.execute(target) if target else None
-                result = dispatcher.call(lambda: dispatcher.core.handle(request, actor, prepared_candidate=candidate))
+                result = dispatcher.call(lambda: dispatcher.core.handle(request, actor, prepared_candidate=candidate,
+                    preparation_binding=target.get("recording") if target else None))
             else:
                 result = dispatcher.call(lambda: dispatcher.core.handle(request, actor))
             self.send(dict(ok=True, result=result))
@@ -287,6 +288,8 @@ def run(profile_path, state):
 
     def publish():
         nonlocal fast_timer
+        if recording_observations:
+            recording_observations.update()
         dispatcher.hub.publish()
         status = core.status()
         targets = []
@@ -302,6 +305,8 @@ def run(profile_path, state):
             fast_timer = True
             GLib.timeout_add(250, progress)
 
+    from .recording import Observations
+    recording_observations = Observations(core, GLib.idle_add) if "recording" in config else None
     core.on_change = publish
     path = store.directory / "runtime.sock"
     if path.exists() or path.is_symlink():
@@ -326,6 +331,8 @@ def run(profile_path, state):
         loop.run()
     finally:
         dispatcher.closed.set()
+        if recording_observations:
+            recording_observations.close()
         resources.close()
         ros.snapshots.close()
         ros.close()

@@ -1,5 +1,6 @@
 include AGENTS.md
 graft docs
 graft deployment
+graft ros
 graft tests
 global-exclude __pycache__ *.py[cod]

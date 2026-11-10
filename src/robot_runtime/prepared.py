@@ -115,6 +115,8 @@ def execute(target):
     env = dict(target["environment"], ROBOT_RUNTIME_PREPARE_UNIT=target["unit_id"],
                ROBOT_RUNTIME_PREPARE_REVISION=target["config_revision"],
                ROBOT_RUNTIME_PREPARE_MODE=target["mode"] or "")
+    if "recording" in target:
+        env["ROBOT_RUNTIME_PREPARE_RECORDING"] = dumps(target["recording"])
     process = subprocess.Popen(target["preparation"]["argv"], cwd=target["working_directory"], env=env,
         stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
     output, error = bytearray(), bytearray()

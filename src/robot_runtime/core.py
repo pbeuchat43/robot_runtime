@@ -50,6 +50,7 @@ class Core:
         self.error = "Supervisor has not been observed"
         self.foreign = []
         self.ros = None
+        self.recording_observations = {}
         self.on_change = lambda: None
         for operation in self.operations.values():
             if operation["action"] == "restart" and operation.get("stage") == "stopping" and operation["phase"] in ("prepared", "in_progress", "outcome_unknown"):
@@ -272,6 +273,9 @@ class Core:
             if run and run.get("stop_request_id"):
                 item["stop_request_id"] = run["stop_request_id"]
                 item["stop_phase"] = self.operations[run["stop_request_id"]]["phase"]
+            from .recording import is_recorder, observation
+            if is_recorder(self, unit["id"]):
+                item["recording"] = observation(self, run)
             units.append(item)
         result = dict(api_version=1, robot_id=self.profile["robot_id"], config_revision=self.revision,
                     generation=self.generation, revision=self.version, boot_id=self.boot,
@@ -279,6 +283,8 @@ class Core:
                     age_seconds=age, fresh=fresh, error=self.error, conflicts=self.foreign, units=units)
         if self.ros:
             result["ros"] = self.ros.summary()
+        if "recording" in self.profile:
+            result["recording"] = self.profile["recording"]
         return result
 
     def _start_conflicts(self, unit_id):
@@ -312,6 +318,8 @@ class Core:
         if type(request.get("version")) is not int or request["version"] != 1:
             raise Fault("protocol_version", "Expected IPC version 1")
         rid = request_id(request.get("request_id"))
+        from .recording import check_request, binding, is_recorder
+        check_request(self, request)
         if rid in self.operations or "prepared" in request:
             return None
         if request.get("config_revision") != self.revision:
@@ -319,8 +327,12 @@ class Core:
         spec, mode = self._launch(text(request.get("unit_id"), 32), self._requested_mode(request))
         if "preparation" not in spec:
             return None
-        return dict(unit_id=spec["id"], config_revision=self.revision, mode=mode["id"] if mode else None,
+        target = dict(unit_id=spec["id"], config_revision=self.revision, mode=mode["id"] if mode else None,
                     preparation=spec["preparation"], environment=spec["environment"], working_directory=spec["working_directory"])
+        if is_recorder(self, spec["id"]):
+            self._require_available(starting=True)
+            target["recording"] = binding(self, request)
+        return target
 
     def _requested_mode(self, request):
         if "mode" in request or request.get("action") != "restart":
@@ -341,13 +353,15 @@ class Core:
             run["prepared"] = reference
         return run
 
-    def command(self, request, actor, prepared_candidate=None):
+    def command(self, request, actor, prepared_candidate=None, preparation_binding=None):
         action = request["action"]
         fields(request, ("version", "action", "unit_id", "request_id", "expires_at_ms", "config_revision"),
-               ("expected_run", "mode", "prepared"))
+               ("expected_run", "mode", "prepared", "recording"))
         unit_id = text(request["unit_id"], 32)
         if unit_id not in self.units:
             raise Fault("not_found", "Unknown runtime unit")
+        from .recording import check_request, binding, is_recorder
+        check_request(self, request)
         rid = request_id(request["request_id"])
         fingerprint = hashlib.sha256(dumps(request).encode()).hexdigest()
         old = self.operations.get(rid)
@@ -375,6 +389,9 @@ class Core:
         if action in ("stop", "resolve", "restart") and not isinstance(request.get("expected_run"), str):
             raise Fault("invalid_request", "Expected run is required")
         self._require_available(starting=action in ("start", "restart"))
+        if is_recorder(self, unit_id) and action == "start":
+            if preparation_binding is None or preparation_binding != binding(self, request):
+                raise Fault("stale_source", "Camera source changed during recording preparation")
         reservation = self._reservation(unit_id)
         resolving_restart = (reservation and action == "resolve" and reservation["phase"] == "outcome_unknown"
                              and request.get("expected_run") == reservation["run_id"])
@@ -386,6 +403,9 @@ class Core:
             if current and current["blocked"]:
                 raise Fault("busy", "Existing run is populated or unresolved", run_id=current["run_id"])
             current = self._new_run(unit_id, request.get("mode"), request.get("prepared", prepared_candidate))
+            if is_recorder(self, unit_id):
+                current["recording_status"] = str(self.store.directory / "recording" / (current["run_id"] + ".json"))
+                current["recording_source"] = preparation_binding
         else:
             if not current or current["run_id"] != request["expected_run"]:
                 raise Fault("stale_run", "The requested run is no longer current")
@@ -449,7 +469,7 @@ class Core:
             self.changed()
         return public_operation(operation)
 
-    def handle(self, request, actor="local", *, prepared_candidate=None):
+    def handle(self, request, actor="local", *, prepared_candidate=None, preparation_binding=None):
         if not isinstance(request, dict) or type(request.get("version")) is not int or request["version"] != 1:
             raise Fault("protocol_version", "Expected IPC version 1")
         action = request.get("action")
@@ -465,7 +485,7 @@ class Core:
         if isinstance(action, str) and action.startswith("ros_") and self.ros:
             return self.ros.handle(request, actor)
         if action in ("start", "stop", "resolve", "restart"):
-            return self.command(request, actor, prepared_candidate)
+            return self.command(request, actor, prepared_candidate, preparation_binding)
         if action == "prepare_launch":
             fields(request, ("version", "action", "unit_id", "config_revision"), ("mode",))
             if request["config_revision"] != self.revision:

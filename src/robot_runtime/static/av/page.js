@@ -12,6 +12,7 @@ import {mountVideo} from './components/video-view.js';
 import {mountStreamSettings} from './components/stream-settings.js';
 import {mountSourceControls} from './components/source-controls.js';
 import {mountCameraPicker} from './components/camera-picker.js';
+import {mountRecording} from './components/recording-panel.js';
 
 const mode = location.pathname.slice(1), $ = id => document.getElementById(id);
 const wantsMedia = mode !== 'input', wantsInput = mode !== 'video';
@@ -23,6 +24,7 @@ let csrf = null, catalog = null, snapshot = null, disposed = false, refreshing =
 const clients = createPageClients({headers: () => csrf ? {'X-CSRF-Token': csrf} : {}});
 const releaseRuntime = clients.runtime.acquire();
 const runtimeView = mountRuntime($('runtime'), clients);
+const recordingView = mountRecording($('recording-section'), {http: clients.http});
 const input = new GamepadInput(), compositions = new Map();
 const sourceControls = mountSourceControls($('source-controls'), {http: clients.http,
   disconnect: () => compositions.get('media')?.client.disconnect()});
@@ -48,6 +50,7 @@ function mount(kind) {
   compositions.set(kind, {api, client, views}); renderServices();
 }
 function renderServices() {
+  recordingView.update({snapshot: wantsMedia ? snapshot : null, enabled: Boolean(csrf)});
   for (const kind of ['media', 'input']) {
     const service = catalog?.services.find(s => s.id === $(kind + '-select').value);
     const unit = snapshot?.units.find(u => u.unit_id === service?.unit_id);
@@ -133,7 +136,7 @@ window.addEventListener('pagehide', event => {
   for (const value of compositions.values()) value.client?.disconnect();
   clients.runtime.disconnect();
   if (event.persisted) return;
-  disposed = true; clearInterval(timer); unwatch(); runtimeView.destroy();
+  disposed = true; clearInterval(timer); unwatch(); runtimeView.destroy(); recordingView.destroy();
   for (const kind of [...compositions.keys()]) clear(kind);
   sourceControls.destroy(); observationsView?.destroy(); releaseObservations();
   input.dispose(); releaseRuntime(); clients.dispose();

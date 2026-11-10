@@ -56,6 +56,8 @@ def launch_argv(run):
     if run.get("prepared"):
         env.update(ROBOT_RUNTIME_PREPARED=run["prepared"]["path"],
                    ROBOT_RUNTIME_PREPARED_SHA256=run["prepared"]["sha256"])
+    if run.get("recording_status"):
+        env["ROBOT_RUNTIME_RECORDING_STATUS"] = run["recording_status"]
     return ["/usr/bin/env", "-i", *[f"{k}={v}" for k, v in sorted(env.items())], *run["spec"]["argv"]]
 
 

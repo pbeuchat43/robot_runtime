@@ -237,6 +237,19 @@ class RosTests(unittest.TestCase):
         self.assertEqual(projection(Message(), selected_schema(Message(), ["data"])), dict(data=str(maximum)))
         self.assertFault("invalid_ros_profile", lambda: selected_schema(Message(), ["data"], complete=True))
 
+    def test_generated_rosidl_bounded_strings_keep_their_declared_limit(self):
+        class Message:
+            session = "A" * 16
+
+            def get_fields_and_field_types(self):
+                return {"session": "string<16>"}
+
+        schema = selected_schema(Message(), ["session"], complete=True)
+        self.assertEqual(arguments({"session": "A" * 16}, schema), {"session": "A" * 16})
+        self.assertEqual(projection(Message(), schema), {"session": "A" * 16})
+        self.assertFault("invalid_arguments", lambda: arguments({"session": "A" * 17}, schema))
+        self.assertEqual(scalar("A" * 16, "string<=16"), "A" * 16)
+
     def test_watchers_share_demand_and_last_removal_discards_samples(self):
         first, second = self.ros.add(["counter"]), self.ros.add(["counter"])
         self.assertEqual(len(self.ros.transport.messages), 1)

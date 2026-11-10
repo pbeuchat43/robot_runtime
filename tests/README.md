@@ -100,6 +100,31 @@ evidence is maintained by its integration repository.
 
 `integration_foxglove.py ROS_ROOT` and `integration_browser.py ROS_ROOT --foxglove` exercise a separately provisioned Foxglove bridge. Its own access policy is distinct from runtime command authentication. It is not required for ordinary runtime operation.
 
+## Native recording
+
+Build `ros/robot_runtime_recording` against the selected camera/detector
+interfaces in the private Jah ROS workspace. Its `recording_contract` and
+`recording_retention` CTests use synthetic data and private temporary files.
+The Python unit suite covers shared admission, frozen source binding, duplicates,
+invalid output choices and stale/interrupted observations.
+
+With that workspace sourced and the local Fast DDS frame profile enabled:
+
+```sh
+ROS_DOMAIN_ID=231 python SOURCE/tests/integration_recording.py \
+  --executable PRIVATE_INSTALL/lib/robot_runtime_recording/recording_node \
+  --output NEW_PRIVATE_DIRECTORY --scenario recovery
+```
+
+Repeat with fresh output directories for `index-off`, `interrupt`, `disk-failure`
+and `rate-limit`. These fixtures use synthetic 720p ROS inputs and the native
+hardware encoder; they establish no camera or physical display performance.
+Recovery covers source/overlay gaps, generation rotation, wrong identities and
+late retired generations. Decode completed files using each track's durable
+`*-segments.jsonl` ledger; after interruption it can be newer than `state.json`.
+Real camera, browser, simultaneous capacity and installer evidence belongs in
+the integration repository's dated recording verification record.
+
 ## Packaging and scope
 
 Build both wheel and source distribution. Install the wheel into a fresh isolated venv; check the four CLI entry points and compare installed package assets against source, including third-party notices. Run applicable native/browser checks with `PYTHONPATH` unset. Read the [current verification record](../docs/verification.md) for actual evidence and limits. Historical deployment-specific installers, hardware pilots, and their reports are outside this standalone test suite.

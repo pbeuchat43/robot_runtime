@@ -88,7 +88,7 @@ class WebTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.calls[-1], ("prepare_launch", dict(unit_id="worker", **body)))
         result = await self.client.post("/api/units/worker/prepare-launch", json=dict(body, argv=["/bin/sh"]), headers=headers)
         self.assertEqual(result.status, 400)
-        for asset in ("launch-control.mjs", "av/components/source-controls.js"):
+        for asset in ("launch-control.mjs", "av/components/source-controls.js", "av/components/recording-panel.js"):
             result = await self.client.get("/assets/" + asset, headers=self.headers)
             self.assertEqual(result.status, 200)
 

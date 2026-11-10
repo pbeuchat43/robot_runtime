@@ -153,7 +153,7 @@ class BrowserAdapter:
         if action == "prepare-launch":
             fields(value, ("config_revision",), ("mode",))
             return web.json_response(await self.rpc("prepare_launch", unit_id=request.match_info["unit"], **value))
-        fields(value, ("request_id", "expires_at_ms", "config_revision"), ("expected_run", "mode"))
+        fields(value, ("request_id", "expires_at_ms", "config_revision"), ("expected_run", "mode", "recording"))
         result = await self.rpc(action, unit_id=request.match_info["unit"], actor="browser:" + session["id"], **value)
         return web.json_response(result, status=202)
 
@@ -411,7 +411,7 @@ def application(state, origin, credential):
                  "autonomous.html": "text/html", "outreach.html": "text/html", "av.html": "text/html"}
         av_assets = {"core.js", "runtime-api.js", "page.js", "page.css", "gamepad-art.js", "gamepad-input.js", "control-client.js",
             "media-client.js", "components.css", "freshness.js", "vendor/gstwebrtc-api-3.0.0.esm.js",
-            *{"components/" + part + ".js" for part in ("camera-picker", "control-panel", "diagnostics", "gamepad-view", "stream-settings", "video-view", "source-controls")}}
+            *{"components/" + part + ".js" for part in ("camera-picker", "control-panel", "diagnostics", "gamepad-view", "stream-settings", "video-view", "source-controls", "recording-panel")}}
         types.update({"av/" + part: "text/css" if part.endswith(".css") else "application/javascript" for part in av_assets})
         if name not in types:
             raise web.HTTPNotFound()

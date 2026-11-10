@@ -4,7 +4,7 @@
 // A browser restart is an explicit Stop followed by Start, not a durable retry
 // workflow. Any uncertainty, cancellation, replacement run, or changed profile
 // ends the sequence. The manager rechecks all Start policy at dispatch.
-export async function changeLaunch({http, unitId, revision, mode, action, expectedRun,
+export async function changeLaunch({http, unitId, revision, mode, action, expectedRun, startOptions = {},
   signal, disconnect = () => {}, progress = () => {},
   now = () => performance.now(), sleep = ms => new Promise(resolve => setTimeout(resolve, ms)),
   uuid = () => crypto.randomUUID()}) {
@@ -54,5 +54,5 @@ export async function changeLaunch({http, unitId, revision, mode, action, expect
     prepared = await prepare();
     if (prepared.unit.run_id !== expectedRun || prepared.unit.blocked) throw Error('Run changed or cleanup is incomplete; Start was not sent.');
   }
-  return command('start', prepared.status, mode ? {mode} : {});
+  return command('start', prepared.status, {...startOptions, ...(mode ? {mode} : {})});
 }

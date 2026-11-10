@@ -53,6 +53,10 @@ def configure_parser(parser):
         if action in ("start", "restart"):
             command.add_argument("--mode", help="Choose an additional launch mode declared by the profile")
             command.add_argument("--prepared", type=Path, help="Explicit versioned prepared-candidate JSON; otherwise use the profile's preparer")
+        if action == "start":
+            command.add_argument("--outputs", nargs="+", choices=("rgb", "depth", "annotated"), help="Recorder outputs; defaults to rgb")
+            command.add_argument("--overlay", choices=("cones", "coco", "combined"), help="Annotated recording source")
+            command.add_argument("--no-frame-index", action="store_true", help="Omit exact encoded-frame capture index")
     credential = commands.add_parser("credential", help="Create a new web credential file; prompts without echo")
     credential.add_argument("--file", type=Path, required=True)
     ros = commands.add_parser("ros", help="Observe declared ROS capabilities and operate services, parameters or actions")
@@ -252,6 +256,9 @@ def dispatch(args):
                     from .prepared import read_file
                     values["prepared"] = loads(read_file(args.prepared.resolve(), maximum=16384))
             # Print before dispatch so a lost response never loses its lookup ID.
+            if args.runtime_command == "start" and (args.outputs is not None or args.overlay is not None or args.no_frame_index):
+                values["recording"] = dict(outputs=args.outputs or ["rgb"], frame_index=not args.no_frame_index,
+                    **({"overlay": args.overlay} if args.overlay is not None else {}))
             print("Request ID: " + identifier, file=sys.stderr, flush=True)
             result = request(args.state, args.runtime_command, **values)
         elif args.runtime_command == "status":

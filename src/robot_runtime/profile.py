@@ -93,7 +93,7 @@ def validate_selections(unit, modes):
 
 
 def validate(value, *, check_paths=True):
-    fields(value, ("schema_version", "robot_id", "namespace", "units"), ("ros", "av"))
+    fields(value, ("schema_version", "robot_id", "namespace", "units"), ("ros", "av", "recording"))
     if type(value["schema_version"]) is not int or value["schema_version"] != 1:
         raise Fault("invalid_profile", "Unsupported profile schema")
     identifier(value["robot_id"])
@@ -201,6 +201,9 @@ def validate(value, *, check_paths=True):
     if "av" in result:
         from .av_profile import validate as validate_av
         result["av"] = validate_av(result["av"], units)
+    if "recording" in result:
+        from .recording import validate as validate_recording
+        result["recording"] = validate_recording(result["recording"], units)
     return result, hashlib.sha256(dumps(result).encode()).hexdigest()
 
 

@@ -11,9 +11,12 @@ def scalar_type(kind):
     integer = re.fullmatch(r"(u?)int(8|16|32|64)", kind)
     if integer:
         return "integer", int(integer[2]), bool(integer[1])
-    string = re.fullmatch(r"string(?:<=(\d+))?", kind)
+    # rosidl_generator_py exposes the IDL spelling string<N>, even for
+    # interfaces declared as string<=N in .msg or .srv source.
+    string = re.fullmatch(r"string(?:<=(\d+)|<(\d+)>)?", kind)
     if string:
-        return "string", min(int(string[1]), 4096) if string[1] else 4096, False
+        bound = string[1] or string[2]
+        return "string", min(int(bound), 4096) if bound else 4096, False
     if kind in ("boolean", "bool"):
         return "boolean", 0, False
     if kind in ("float", "float32", "double", "float64"):
