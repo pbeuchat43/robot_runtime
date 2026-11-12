@@ -25,13 +25,16 @@ bool valid_image(const sensor_msgs::msg::Image& image,const std::string& encodin
     image.step==uint32_t(width*channels)&&image.data.size()==size_t(image.step)*image.height&&stamp_ns(image.header)==stamp;
 }
 rr::Json capture_json(const Capture& c) {
-  rr::require(c.schema_version==1&&c.stream_id=="rgbd"&&c.source_id.size()<=256&&c.generation.size()<=128&&c.clock_domain.size()<=128,"invalid capture identity");
+  rr::require(c.schema_version==2&&c.stream_id=="rgbd"&&c.source_id.size()<=256&&c.generation.size()<=128&&c.clock_domain.size()<=128,"invalid capture identity");
+  rr::require(c.exposure_midpoint_ns>=0&&c.exposure_midpoint_ns<=c.received_ns&&c.exposure_duration_ns>=0&&
+    c.exposure_duration_ns<=1000000000&&(c.exposure_duration_ns==0||c.exposure_midpoint_ns>0),"invalid exposure timing");
   return {{"schema_version",c.schema_version},{"source_id",c.source_id},{"generation",c.generation},{"stream_id",c.stream_id},
     {"sequence",std::to_string(c.sequence)},{"acquisition_ns",std::to_string(c.acquisition_ns)},{"received_ns",std::to_string(c.received_ns)},
+    {"exposure_midpoint_ns",std::to_string(c.exposure_midpoint_ns)},{"exposure_duration_ns",std::to_string(c.exposure_duration_ns)},
     {"clock_domain",c.clock_domain},{"unix_offset_ns",std::to_string(c.unix_offset_ns)}};
 }
 rr::Json provenance(const Detections& d) {
-  rr::require(d.schema_version==1&&d.model_id.size()<=128&&d.model_sha256.size()==64&&d.model_profile_sha256.size()==64&&d.engine_sha256.size()==64&&
+  rr::require(d.schema_version==2&&d.model_id.size()<=128&&d.model_sha256.size()==64&&d.model_profile_sha256.size()==64&&d.engine_sha256.size()==64&&
     d.preprocessing.size()<=128&&d.inference_backend.size()<=128,"invalid detector provenance");
   return {{"model_id",d.model_id},{"model_sha256",d.model_sha256},{"model_profile_sha256",d.model_profile_sha256},{"engine_sha256",d.engine_sha256},
     {"preprocessing",d.preprocessing},{"inference_backend",d.inference_backend},{"model_width",d.model_width},{"model_height",d.model_height},
@@ -52,6 +55,10 @@ class Recorder : public rclcpp::Node {
     if(std::find(s.outputs.begin(),s.outputs.end(),"annotated")!=s.outputs.end()) {
       if(s.overlay_kind=="combined")combined_=create_subscription<Combined>(s.overlay_topic,qos,[this](Combined::ConstSharedPtr m){
         try {rr::require(m->capture_detections[0].capture==m->capture_detections[1].capture&&m->capture_detections[0].calibration_id==m->capture_detections[1].calibration_id,"combined capture mismatch");
+          rr::require(m->capture_detections[0].depth_sequence==m->capture_detections[1].depth_sequence&&
+            m->capture_detections[0].depth_acquisition_ns==m->capture_detections[1].depth_acquisition_ns&&
+            m->capture_detections[0].depth_exposure_midpoint_ns==m->capture_detections[1].depth_exposure_midpoint_ns&&
+            m->capture_detections[0].depth_exposure_duration_ns==m->capture_detections[1].depth_exposure_duration_ns,"combined depth timing mismatch");
           overlay(m->capture_detections[0],std::shared_ptr<const sensor_msgs::msg::Image>(m,&m->image),rr::Json::array({provenance(m->capture_detections[0]),provenance(m->capture_detections[1])}));
         }catch(const std::exception& e){session_->reject("annotated",e.what());}});
       else overlay_=create_subscription<Overlay>(s.overlay_topic,qos,[this](Overlay::ConstSharedPtr m){
@@ -72,9 +79,14 @@ class Recorder : public rclcpp::Node {
         f->alignment=="aligned_to_rgb"&&f->depth_convention=="optical_z"&&f->depth_unit_m==.001&&f->invalid_depth_value==0&&
         f->calibration_id.size()==64&&f->rgb_info.d.size()<=16&&f->rgb.header.frame_id.size()<=256,"incompatible RGB-D profile");
       const auto c=capture_json(f->capture);
+      rr::require(f->depth_exposure_midpoint_ns>=0&&f->depth_exposure_midpoint_ns<=f->capture.received_ns&&
+        f->depth_exposure_duration_ns>=0&&f->depth_exposure_duration_ns<=1000000000&&
+        (f->depth_exposure_duration_ns==0||f->depth_exposure_midpoint_ns>0),"invalid depth exposure timing");
       rr::Json geometry={{"width",s.width},{"height",s.height},{"k",f->rgb_info.k},{"d",f->rgb_info.d},{"frame_id",f->rgb.header.frame_id}};
       rr::require(session_->source(c,f->calibration_id,geometry,f->depth_acquisition_ns),"source identity, geometry or time rejected");
       rr::Json metadata={{"capture",c},{"calibration_id",f->calibration_id},{"depth_sequence",std::to_string(f->depth_sequence)},
+        {"depth_exposure_midpoint_ns",std::to_string(f->depth_exposure_midpoint_ns)},
+        {"depth_exposure_duration_ns",std::to_string(f->depth_exposure_duration_ns)},
         {"depth_acquisition_ns",std::to_string(f->depth_acquisition_ns)},{"skew_ns",std::to_string(f->skew_ns)},{"backend",f->backend}};
       session_->admit("rgb",std::shared_ptr<const sensor_msgs::msg::Image>(f,&f->rgb),metadata,f->capture.acquisition_ns);
       session_->admit("depth",std::shared_ptr<const sensor_msgs::msg::Image>(f,&f->depth),std::move(metadata),f->depth_acquisition_ns);
@@ -82,10 +94,15 @@ class Recorder : public rclcpp::Node {
   }
   void overlay(const Detections& d,std::shared_ptr<const sensor_msgs::msg::Image> image,rr::Json models) {
     const auto& s=session_->settings();auto c=capture_json(d.capture);
+    rr::require(d.depth_exposure_midpoint_ns>=0&&d.depth_exposure_midpoint_ns<=d.capture.received_ns&&
+      d.depth_exposure_duration_ns>=0&&d.depth_exposure_duration_ns<=1000000000&&
+      (d.depth_exposure_duration_ns==0||d.depth_exposure_midpoint_ns>0),"invalid overlay depth exposure timing");
     rr::require(d.source_width==uint32_t(s.width)&&d.source_height==uint32_t(s.height)&&
       valid_image(*image,"bgr8",s.width,s.height,mapped_stamp(d.capture.acquisition_ns,d.capture.unix_offset_ns))&&
       session_->matches(c,d.calibration_id),"overlay source incompatible or unavailable");
     session_->admit("annotated",std::move(image),{{"capture",c},{"calibration_id",d.calibration_id},{"models",models},
+      {"depth_exposure_midpoint_ns",std::to_string(d.depth_exposure_midpoint_ns)},
+      {"depth_exposure_duration_ns",std::to_string(d.depth_exposure_duration_ns)},
       {"depth_sequence",std::to_string(d.depth_sequence)},{"depth_acquisition_ns",std::to_string(d.depth_acquisition_ns)}},d.capture.acquisition_ns);
   }
   std::unique_ptr<rr::Session> session_;

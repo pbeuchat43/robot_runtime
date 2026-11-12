@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>robot_runtime_recording</name><version>0.1.0</version>
+  <name>robot_runtime_recording</name><version>0.2.0</version>
   <description>Independent bounded event video recording from atomic RGB-D captures.</description>
   <maintainer email="pbeuchat@unimelb.edu.au">Paul N. Beuchat</maintainer>
   <license>MIT</license>
