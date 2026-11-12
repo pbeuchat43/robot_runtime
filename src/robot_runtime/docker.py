@@ -3,6 +3,7 @@
 # Copyright (c) 2026 Paul N. Beuchat
 import copy
 import json
+import os
 import re
 import subprocess
 import threading
@@ -45,6 +46,7 @@ def intent(run):
     if not selected or "," in selected["path"] or "\n" in selected["path"]:
         raise Fault("invalid_prepared", "Missing or unsupported Docker prepared input")
     return dict(name=run["name"].removesuffix(".service"), id=None, phase="prepared",
+                user=str(os.getuid()) + ':' + str(os.getgid()),
                 config_path=selected["path"],
                 labels={"robot.runtime.run": run["run_id"], "robot.runtime.service": run["name"]},
                 stop_requested=False, signal_sent=False, remove_sent=False)
@@ -73,6 +75,8 @@ class Engine:
                 or resource["id"] not in (None, value["Id"])
                 or any(config.get("Labels", {}).get(k) != v for k, v in resource["labels"].items())
                 or value["Image"] != run["spec"]["docker"]["image"]
+                or config["User"] != resource["user"] or host["NetworkMode"] != "host"
+                or host["IpcMode"] != "host" or host["PidMode"] != "host"
                 or host["RestartPolicy"]["Name"] != "no" or host["AutoRemove"]):
             return dict(state="conflict")
         state = value["State"]
@@ -82,7 +86,8 @@ class Engine:
     def create(self, run):
         spec, resource = run["spec"]["docker"], run["docker"]
         args = ["container", "create", "--pull=never", "--name", resource["name"], "--restart=no",
-                "--network=host", "--ipc=host", "--cap-drop=ALL", "--security-opt=no-new-privileges",
+                "--network=host", "--ipc=host", "--pid=host", "--user", resource["user"],
+                "--cap-drop=ALL", "--security-opt=no-new-privileges",
                 "--log-driver=local", "--log-opt=max-size=10m", "--log-opt=max-file=2",
                 "--entrypoint", spec["argv"][0],
                 "--stop-signal=" + run["spec"]["stop"]["signal"]]
