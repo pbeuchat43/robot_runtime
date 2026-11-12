@@ -142,37 +142,30 @@ export async function runAV(test) {
       assert(!media.want, 'Subsequent source change still revokes the active session without replay');
     } finally { releaseConfig(); detach(); release(); media.dispose(); api.dispose(); }
   });
-  await test('selected restart requires confirmed cleanup and never continues after uncertainty or cancellation', async () => {
-    for (const scenario of ['success', 'unknown', 'timeout', 'replaced', 'cancel', 'preflight-failed']) {
-      const commands = [], controller = new AbortController(); let prepares = 0, disconnected = 0;
+  await test('restart sends one durable manager operation without client stop/start chaining', async () => {
+    for (const scenario of ['success', 'unknown', 'replaced', 'cancel', 'preflight-failed']) {
+      const commands = [], controller = new AbortController();
       const http = {
-        async post(path, body) {
-          if (path.endsWith('prepare-launch')) {
-            prepares++;
-            if (scenario === 'preflight-failed') throw Error('Missing executable');
-            return {config_revision: 'rev', stop_timeout_seconds: 1,
-              status: {fresh: true, server_time_ms: 1000, units: [{unit_id: 'worker',
-                run_id: scenario === 'replaced' && prepares === 2 ? 'other' : 'old',
-                blocked: prepares === 1, ownership: 'owned'}]}};
-          }
-          commands.push({path, body});
-          if (path.endsWith('/stop')) return {request_id: 'stop-id', phase: 'in_progress'};
-          return {request_id: 'start-id', phase: 'in_progress'};
-        },
-        async operation() {
+        async get() {
           if (scenario === 'cancel') controller.abort();
-          return {request_id: 'stop-id', phase: scenario === 'unknown' ? 'outcome_unknown' : scenario === 'timeout' ? 'timed_out' : 'complete', outcome: 'cgroup_empty'};
+          return {fresh: true, config_revision: 'rev', server_time_ms: 1000,
+            units: [{unit_id: 'worker', run_id: scenario === 'replaced' ? 'other' : 'old', blocked: true}]};
+        },
+        async post(path, body) {
+          commands.push({path, body});
+          if (scenario === 'preflight-failed') throw Error('Manager preparation refused before Stop');
+          return {request_id: 'restart-id', phase: scenario === 'unknown' ? 'outcome_unknown' : 'in_progress'};
         },
       };
       let error = null;
       try { await changeLaunch({http, unitId: 'worker', revision: 'rev', mode: 'b-objects', action: 'restart',
-        expectedRun: 'old', signal: controller.signal, disconnect: () => disconnected++, sleep: async () => {}, uuid: () => 'fixture'}); }
+        expectedRun: 'old', signal: controller.signal, uuid: () => 'fixture'}); }
       catch (value) { error = value; }
-      assert(Boolean(error) === (scenario !== 'success'), `${scenario}: expected sequence outcome`);
-      assert(commands.filter(item => item.path.endsWith('/start')).length === (scenario === 'success' ? 1 : 0), `${scenario}: no unconfirmed Start`);
-      assert(disconnected === (scenario === 'preflight-failed' ? 0 : 1), `${scenario}: preflight before disconnect`);
-      if (scenario === 'success') {
-        assert(commands[0].body.expected_run === 'old' && commands[1].body.mode === 'b-objects', 'Exact old run and selected new mode');
+      assert(Boolean(error) === ['replaced', 'cancel', 'preflight-failed'].includes(scenario), `${scenario}: expected outcome`);
+      assert(commands.length === (['replaced', 'cancel'].includes(scenario) ? 0 : 1), `${scenario}: no replay`);
+      for (const command of commands) {
+        assert(command.path.endsWith('/restart') && command.body.expected_run === 'old' && command.body.mode === 'b-objects',
+          'Exact old run and selected new mode in one manager operation');
       }
     }
   });

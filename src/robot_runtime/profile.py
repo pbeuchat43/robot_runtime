@@ -48,6 +48,10 @@ def select_launch(unit, mode_id=None):
     if mode_id is not None and (not isinstance(mode_id, str) or mode is None):
         raise Fault("invalid_request", "Unknown launch mode")
     spec = copy.deepcopy(dict(unit, argv=mode["argv"]) if mode else unit)
+    if mode and "docker" in mode:
+        spec["docker"] = copy.deepcopy(mode["docker"])
+    elif mode:
+        spec.pop("docker", None)
     check_launch(spec)
     return spec, mode
 
@@ -109,7 +113,7 @@ def validate(value, *, check_paths=True):
             text(source["unavailable_reason"], 512)
         else:
             fields(source, ("id", "label", "argv", "working_directory", "environment", "stop"),
-                   ("requires_running", "public_logs", "available", "launch_modes", "conflicts", "launch_selections", "default_launch_mode", "preparation"))
+                   ("requires_running", "public_logs", "available", "launch_modes", "conflicts", "launch_selections", "default_launch_mode", "preparation", "docker"))
         unit = dict(source)
         identifier(unit["id"])
         if unit["id"] in units:
@@ -126,17 +130,23 @@ def validate(value, *, check_paths=True):
             if type(timeout) not in (int, float) or not math.isfinite(timeout) or not .1 <= timeout <= 5:
                 raise Fault("invalid_profile", "Preparation requires a finite 0.1–5 second deadline")
         modes = unit.get("launch_modes", [])
-        if not isinstance(modes, list) or len(modes) > 8:
-            raise Fault("invalid_profile", "Declare at most eight launch modes")
+        if not isinstance(modes, list) or len(modes) > 32:
+            raise Fault("invalid_profile", "Declare at most 32 launch modes")
         seen = set()
         for mode in modes:
-            fields(mode, ("id", "label", "argv"), ("selections",))
+            fields(mode, ("id", "label", "argv"), ("selections", "docker"))
             identifier(mode["id"])
             text(mode["label"], 80)
             if mode["id"] in seen:
                 raise Fault("invalid_profile", "Duplicate launch mode")
             seen.add(mode["id"])
             launch_argv(mode["argv"])
+        from .docker import validate as validate_docker
+        for launch in [unit, *modes]:
+            if "docker" in launch:
+                if "preparation" not in unit:
+                    raise Fault("invalid_profile", "Docker launches require preparation")
+                validate_docker(launch["docker"])
         validate_selections(unit, modes)
         absolute(unit["working_directory"])
         env = unit["environment"]

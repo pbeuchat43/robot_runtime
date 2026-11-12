@@ -94,7 +94,7 @@ def validate(value, units):
                         ids.add(key)
                         if "active_modes" in choice:
                             modes = choice["active_modes"]
-                            if (not isinstance(modes, list) or not 1 <= len(modes) <= 8 or
+                            if (not isinstance(modes, list) or not 1 <= len(modes) <= 32 or
                                     any(not isinstance(m, str) for m in modes) or
                                     len(set(modes)) != len(modes) or not set(modes) <= declared_modes):
                                 raise Fault("invalid_profile", "Video choices require unique installed owner launch modes")

@@ -45,6 +45,7 @@ class Core:
         self.generation = uuid.uuid4().hex
         self.version = 0
         self.supervisor = None
+        self.docker = None
         self.observations = {}
         self.last_audit = None
         self.error = "Supervisor has not been observed"
@@ -93,11 +94,18 @@ class Core:
     def _observe(self, run, *, full):
         observed = self.supervisor.snapshot(run["name"], full=full)
         self.observations[run["run_id"]] = observed
+        external = self._external_state(run)
+        if external == "conflict":
+            self._save_run(run, lifecycle="ownership_conflict")
+            return
         if run["boot_id"] != self.boot:
             if observed:
                 self._save_run(run, lifecycle="ownership_conflict")
-            else:
+            elif external == "empty":
                 self._save_run(run, lifecycle="interrupted_by_reboot", blocked=False)
+            elif self.docker:
+                self.docker.stop(run)
+                self._save_run(run, lifecycle="outcome_unknown")
             return
         if not observed:
             self._save_run(run, lifecycle="outcome_unknown")
@@ -109,15 +117,42 @@ class Core:
         self.supervisor.retain(run["name"])
         terminal = not observed["members"] and observed["ActiveState"] in ("inactive", "failed") and observed["Job"][0] == 0
         if terminal:
+            if self.docker:
+                self.docker.stop(run)
+            if external != "empty":
+                self._save_run(run, lifecycle="containers_surviving" if external in ("live", "stopped") else "outcome_unknown", terminal=observed)
+                return
             lifecycle = "exited" if observed["Result"] == "success" else "failed"
             self._save_run(run, lifecycle=lifecycle, blocked=False, terminal=observed)
             # Persist before releasing the only terminal evidence reference.
             self.supervisor.release(run["name"], failed=observed["ActiveState"] == "failed")
         else:
+            if "docker" in run and external == "stopped" and run["docker"]["phase"] in ("running", "unknown"):
+                # Required estimator exited (or interrupted startup was recovered).
+                # Clean up the aggregate once, with the same graceful policy.
+                if not run.get("failure_stop_sent") and not run["docker"]["stop_requested"]:
+                    self._save_run(run, failure_stop_sent=True)
+                    self.supervisor.signal(run)
+                    self.docker.stop(run)
             lifecycle = "starting" if observed["ActiveState"] == "activating" else "running"
             if not observed["MainPID"] and observed["members"]:
                 lifecycle = "descendants_surviving"
             self._save_run(run, lifecycle=lifecycle)
+
+    def _external_state(self, run):
+        return self.docker.state(run) if self.docker else "unknown" if "docker" in run else "empty"
+
+    def _start(self, run):
+        self.supervisor.start(run)
+        if self.docker:
+            self.docker.start(run)
+
+    def _signal(self, run):
+        if self.docker:
+            self.docker.stop(run)
+        observed = self.observations.get(run["run_id"])
+        if owns(run, observed):
+            self.supervisor.signal(run)
 
     def _finish_operations(self):
         now = self.clock()
@@ -135,7 +170,8 @@ class Core:
             if operation["action"] == "start":
                 if run["lifecycle"] == "interrupted_by_reboot":
                     changed |= self._save_operation(operation, phase="outcome_unknown")
-                elif observation and owns(run, observation) and observation["ActiveState"] != "activating":
+                elif (observation and owns(run, observation) and observation["ActiveState"] != "activating"
+                      and self._external_state(run) in ("live", "empty")):
                     # Successful start means supervisor launch acceptance, not readiness.
                     changed |= self._save_operation(operation, phase="complete", delivery="observed", outcome=run["lifecycle"])
                 elif run["lifecycle"] in ("outcome_unknown", "ownership_conflict"):
@@ -188,14 +224,15 @@ class Core:
             self.store.save(run=replacement, operation=operation)
             self.runs[replacement["run_id"]] = replacement
             try:
-                self.supervisor.start(replacement)
+                self._start(replacement)
                 self._save_operation(operation, delivery="acknowledged")
             except Exception:
                 self._save_operation(operation, phase="outcome_unknown", continue_restart=False)
             return True
         run = self.runs[operation["new_run_id"]]
         observed = self.observations.get(run["run_id"]) or run.get("terminal")
-        if observed and owns(run, observed) and observed["ActiveState"] != "activating":
+        if (observed and owns(run, observed) and observed["ActiveState"] != "activating"
+                and self._external_state(run) in ("live", "empty")):
             return self._save_operation(operation, phase="failed" if run["lifecycle"] == "failed" else "complete",
                 delivery="observed", outcome="replacement_" + run["lifecycle"])
         if run["lifecycle"] == "interrupted_by_reboot":
@@ -255,6 +292,9 @@ class Core:
             item["launch_selections"] = unit.get("launch_selections", [])
             item["default_launch_mode"] = unit.get("default_launch_mode")
             item["launch_mode"] = run.get("launch_mode") if run else None
+            if run and "docker" in run:
+                item["container"] = dict(name=run["docker"]["name"], id=run["docker"]["id"],
+                                         state=self._external_state(run))
             item["start_blocked_by"] = self._start_conflicts(unit["id"])
             transition = self._reservation(unit["id"])
             if transition:
@@ -351,6 +391,11 @@ class Core:
                    spec=spec, config_revision=self.revision, launch_mode=public_mode(mode))
         if reference:
             run["prepared"] = reference
+        if "docker" in spec:
+            if not reference:
+                raise Fault("invalid_prepared", "An owned container requires frozen launch inputs")
+            from .docker import intent
+            run["docker"] = intent(run)
         return run
 
     def command(self, request, actor, prepared_candidate=None, preparation_binding=None):
@@ -414,9 +459,11 @@ class Core:
             if action == "resolve":
                 if self.supervisor.snapshot(current["name"], full=True) is not None:
                     raise Fault("precondition", "Resolution requires a collected, absent service")
+                if self._external_state(current) != "empty":
+                    raise Fault("precondition", "Resolution requires verified container absence; uncertain create requires host reboot")
             elif current["blocked"]:
                 observed = self.observations.get(current["run_id"])
-                if not owns(current, observed):
+                if not owns(current, observed) and self._external_state(current) not in ("live", "stopped"):
                     raise Fault("outcome_unknown", "Cannot signal without current ownership evidence")
                 if any(op["action"] in ("stop", "restart") and op.get("old_run_id", op["run_id"]) == current["run_id"] for op in self.operations.values()):
                     raise Fault("stop_already_requested", "This run already has a stop request; no automatic repeat is permitted")
@@ -446,9 +493,9 @@ class Core:
         self.operations[rid] = operation
         try:
             if action == "start":
-                self.supervisor.start(current)
+                self._start(current)
             elif action in ("stop", "restart") and current["blocked"]:
-                self.supervisor.signal(current)
+                self._signal(current)
             elif action == "resolve":
                 if resolving_restart:
                     self._save_operation(reservation, phase="failed", outcome="missing_run_resolved_without_replay")

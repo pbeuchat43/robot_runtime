@@ -224,6 +224,8 @@ def run(profile_path, state):
     DBusGMainLoop(set_as_default=True)
     store = Store(state)
     core = Core(config, revision, store, Path("/proc/sys/kernel/random/boot_id").read_text().strip())
+    from .docker import OwnedDocker
+    core.docker = OwnedDocker(core, GLib.idle_add)
     ros = core.ros = RosRuntime(core)
     dispatcher = Dispatcher(core)
     resources = dispatcher.resources = ResourceMonitor()
@@ -325,12 +327,18 @@ def run(profile_path, state):
         GLib.timeout_add(250, lambda: (ros.tick(), GLib.SOURCE_CONTINUE)[1])
     GLib.timeout_add_seconds(5, reconnect)
     GLib.timeout_add_seconds(10, periodic)
+    def containers():
+        if not disconnected and any(run["blocked"] and "docker" in run for run in core.runs.values()):
+            audit()
+        return GLib.SOURCE_CONTINUE
+    GLib.timeout_add(500, containers)
     for number in (signal.SIGINT, signal.SIGTERM):
         GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, number, lambda: (loop.quit(), False)[1])
     try:
         loop.run()
     finally:
         dispatcher.closed.set()
+        core.docker.close()
         if recording_observations:
             recording_observations.close()
         resources.close()
