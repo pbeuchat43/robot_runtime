@@ -83,6 +83,8 @@ class Engine:
         spec, resource = run["spec"]["docker"], run["docker"]
         args = ["container", "create", "--pull=never", "--name", resource["name"], "--restart=no",
                 "--network=host", "--ipc=host", "--cap-drop=ALL", "--security-opt=no-new-privileges",
+                "--log-driver=local", "--log-opt=max-size=10m", "--log-opt=max-file=2",
+                "--entrypoint", spec["argv"][0],
                 "--stop-signal=" + run["spec"]["stop"]["signal"]]
         if spec["gpu"]:
             args += ["--runtime=nvidia"]
@@ -93,7 +95,7 @@ class Engine:
         mounts = spec["mounts"] + [dict(source=resource["config_path"], target="/run/robot/prepared.json")]
         for mount in mounts:
             args += ["--mount", "type=bind,readonly,src=" + mount["source"] + ",dst=" + mount["target"]]
-        args += [spec["image"], *spec["argv"]]
+        args += [spec["image"], *spec["argv"][1:]]
         result = self.call(*args)
         if not re.fullmatch(r"[0-9a-f]{64}", result):
             raise RuntimeError("Docker returned an invalid ID")
