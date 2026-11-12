@@ -9,7 +9,7 @@ from robot_runtime.common import Fault
 from robot_runtime.core import Core
 from robot_runtime.docker import OwnedDocker
 from robot_runtime.profile import validate
-from test_core import PolicyTests, profile
+import test_core
 
 
 class QueuedDocker(OwnedDocker):
@@ -28,9 +28,9 @@ class QueuedDocker(OwnedDocker):
 
 
 class DockerPolicyTests(unittest.TestCase):
-    setUp = PolicyTests.setUp
-    tearDown = PolicyTests.tearDown
-    command = PolicyTests.command
+    setUp = test_core.PolicyTests.setUp
+    tearDown = test_core.PolicyTests.tearDown
+    command = test_core.PolicyTests.command
 
     def start(self):
         spec = self.core.units["worker"]
@@ -146,7 +146,7 @@ class DockerPolicyTests(unittest.TestCase):
 
 class DockerProfileTests(unittest.TestCase):
     def test_mode_bound_is_32(self):
-        value = profile()
+        value = test_core.profile()
         unit = value["units"][0]
         unit["launch_modes"] = [dict(id="mode" + str(i), label="Mode", argv=unit["argv"]) for i in range(32)]
         validate(value)
