@@ -17,6 +17,11 @@ int main(){try{
   Json config={{"schema_version",1},{"root",(directory/"history").string()},{"outputs",{"rgb"}},
       {"bitrates",{{"rgb",1000000}}},{"source",{{"backend","oak"},{"source_id","oak:fixture"},
       {"width",640},{"height",640},{"frame_topic","/fixture/frames"}}}};
+  auto widescreen=config;widescreen["source"]["height"]=360;
+  require(Settings(widescreen).height==360,"admitted 360p camera profile rejected");
+  widescreen["source"]["height"]=361;rejected=false;
+  try{Settings invalid(widescreen);}catch(...){rejected=true;}
+  require(rejected,"undeclared recording dimensions admitted");
   std::ifstream boot_file("/proc/sys/kernel/random/boot_id");std::string boot;boot_file>>boot;
   {
     Session session(Settings(config),std::string(32,'c'),directory/"source-state.json");
