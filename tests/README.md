@@ -127,4 +127,10 @@ the integration repository's dated recording verification record.
 
 ## Packaging and scope
 
+Owned Docker changes additionally require `tests/test_docker.py` and
+`tests/integration_docker.py NEW_PRIVATE_DIRECTORY --image sha256:EXISTING_IMAGE_ID`.
+The finite real fixture checks manager recovery, immediate cancellation, native
+launcher exit and a graceful stop deadline. It opens no camera, pulls no image
+and records explicit final container absence. The image must provide Python 3.
+
 Build both wheel and source distribution. Install the wheel into a fresh isolated venv; check the four CLI entry points and compare installed package assets against source, including third-party notices. Run applicable native/browser checks with `PYTHONPATH` unset. Read the [current verification record](../docs/verification.md) for actual evidence and limits. Historical deployment-specific installers, hardware pilots, and their reports are outside this standalone test suite.

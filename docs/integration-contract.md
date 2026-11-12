@@ -93,6 +93,34 @@ Choose user-manager versus system-service deployment, boot persistence, privileg
 
 ## Observations and subscriptions
 
+An installed launch may declare one `docker` resource with an immutable local
+image ID, explicit argv/environment, up to eight read-only mounts, and the name
+of one frozen preparation input. Runtime mounts that input at
+`/run/robot/prepared.json`. It uses the runtime account's UID/GID, host network,
+IPC and PID namespaces, no restart policy, bounded local logs and no Docker socket
+mount. The optional GPU flag selects the installed NVIDIA runtime. Profile schema
+validation rejects this field on older runtimes; install matching integrations.
+
+Runtime persists the exact name, labels and intended user before create, and
+the verified full ID before start. Bounded daemon calls run off the command-policy
+thread. Normal Stop signals both the native cgroup and the verified container;
+it removes only a stopped owned container. Both must be empty before replacement.
+No automatic force kill or replay follows a timeout. A failed required container
+requests native cleanup; native exit requests container cleanup. Process health
+and application readiness remain distinct.
+
+After a manager crash, recovery only inspects retained ownership. A lost create
+reply followed by absence remains uncertain on the same host boot: the daemon
+could still commit the request. If the exact object appears, Stop can reconcile
+it. Otherwise arrange a host reboot during maintenance, then let runtime verify
+the old native service and container are absent. A daemon restart alone is not
+accepted as proof. Never delete runtime state to bypass unresolved ownership.
+
+Browser Restart now sends the same single durable operation as the CLI. Once
+accepted, disconnecting the browser does not cancel the prepared replacement;
+query its operation ID for the outcome. Invalid preparation still leaves the
+current run intact.
+
 Every observable capability must distinguish what is known from what is inferred. Runtime lifecycle, process ownership, provider readiness, progress/health, ROS application state, and freshness are separate fields or records. A running process does not imply that a sensor is producing valid data, a vehicle is enabled, or an operation succeeded.
 
 Latest-state subscriptions must provide a complete initial state, an instance/stream generation, revisions or sequence numbers, timestamps with declared clock domains, and explicit expiry/unavailable states. Reconnection establishes a new baseline. It must not reset the acquisition age of cached data or retain positive health after its evidence expires. Robot reboot invalidates prior monotonic-clock comparisons.

@@ -92,7 +92,7 @@ class Engine:
                 "--entrypoint", spec["argv"][0],
                 "--stop-signal=" + run["spec"]["stop"]["signal"]]
         if spec["gpu"]:
-            args += ["--runtime=nvidia"]
+            args += ["--runtime=nvidia", "--gpus=all"]
         for key, value in resource["labels"].items():
             args += ["--label", key + "=" + value]
         for key, value in dict(spec["environment"], ROBOT_RUNTIME_RUN=run["run_id"]).items():
