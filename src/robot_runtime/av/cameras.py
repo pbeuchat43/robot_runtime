@@ -5,9 +5,8 @@ import errno
 from functools import partial
 import multiprocessing
 import os
-import signal
 from pathlib import Path
-from queue import Empty, Full
+from queue import Empty
 import struct
 import threading
 import time
@@ -53,78 +52,12 @@ def video_formats(path):
         os.close(descriptor)
 
 
-class NativeOakCapture:
-    def __init__(self, device, width, height, fps):
-        import depthai as dai
-        self.dai = dai
-        self.device = dai.Device(dai.DeviceInfo(device['serial']))
-        try:
-            self.pipeline = dai.Pipeline(self.device)
-            camera = self.pipeline.create(dai.node.Camera).build(dai.CameraBoardSocket.CAM_A)
-            output = camera.requestOutput((width, height), dai.ImgFrame.Type.NV12, dai.ImgResizeMode.CROP, fps)
-            self.queue = output.createOutputQueue(maxSize=1, blocking=False)
-            self.pipeline.start()
-        except Exception:
-            self.device.close()
-            raise
+class ProcessCapture:
+    """Bounded latest-frame transport for an explicitly supplied capture worker."""
 
-    def read(self):
-        if not self.pipeline.isRunning():
-            raise RuntimeError('OAK pipeline stopped')
-        frame = self.queue.tryGet()
-        if frame is None:
-            return None
-        age = max(0, (self.dai.Clock.now() - frame.getTimestamp()).total_seconds())
-        return frame.getData().copy(), time.monotonic() - age
-
-    def close(self):
-        try:
-            self.pipeline.stop()
-            self.pipeline.wait()
-        finally:
-            self.device.close()
-
-
-def oak_worker(device, width, height, fps, pixels, stamp, sequence, lock, stopped, errors, ready):
-    """Native SDK failures must not terminate HTTP, WebRTC or input receipt."""
-    import numpy as np
-    capture = None
-    signalled = False
-    def request_stop(*_):
-        # A signal can interrupt Event.wait while its process-shared lock is
-        # held. Never acquire that lock again from the Python signal handler.
-        nonlocal signalled
-        signalled = True
-    signal.signal(signal.SIGTERM, request_stop)
-    signal.signal(signal.SIGINT, request_stop)
-    try:
-        capture = NativeOakCapture(device, width, height, fps)
-        target = np.frombuffer(pixels, dtype=np.uint8)
-        while not signalled and not stopped.wait(.002):
-            if signalled:
-                break
-            frame = capture.read()
-            if frame is not None:
-                data, at = frame
-                with lock:
-                    target[:] = data
-                    stamp.value = at
-                    sequence.value += 1
-                    ready.set()
-    except Exception as error:
-        try:
-            errors.put_nowait(str(error)[:2000])
-        except Full:
-            pass
-    finally:
-        if capture:
-            capture.close()  # A native segfault here is confined to this child.
-
-
-class OakCapture:
     startup_timeout = 15
 
-    def __init__(self, device, width, height, fps, worker=oak_worker):
+    def __init__(self, device, width, height, fps, *, worker):
         context = multiprocessing.get_context('spawn')
         self.pixels = context.RawArray('B', width * height * 3 // 2)
         self.stamp, self.sequence = context.RawValue('d', 0), context.RawValue('Q', 0)
@@ -141,7 +74,7 @@ class OakCapture:
             try:
                 error = self.errors.get_nowait()
             except Empty:
-                error = f'OAK capture process exited ({self.process.exitcode})'
+                error = f'Camera capture process exited ({self.process.exitcode})'
             raise RuntimeError(error)
         if not self.ready.wait(.1):
             return None
@@ -248,7 +181,7 @@ def open_camera(device, width, height, fps, policy=None):
     if device['kind'] == 'ros':
         from .ros_source import RosCapture
         return RosCapture(device, width, height, fps, policy or load_profile())
-    factory = {'oak': OakCapture, 'test': TestCapture, 'webcam': V4L2Capture, 'realsense': V4L2Capture}[device['kind']]
+    factory = {'test': TestCapture, 'webcam': V4L2Capture, 'realsense': V4L2Capture}[device['kind']]
     if factory is V4L2Capture:
         return factory(device, width, height, fps, policy)
     return factory(device, width, height, fps)

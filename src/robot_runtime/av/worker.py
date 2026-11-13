@@ -29,9 +29,7 @@ def declared_camera(source):
     """Describe only the configured source; never enumerate unrelated devices."""
     kind = source["kind"]
     value = dict(id=kind, kind=kind, label=source["label"], available=True)
-    if kind == "oak":
-        value.update(id="oak:" + source["serial"], serial=source["serial"])
-    elif kind == "v4l2":
+    if kind == "v4l2":
         from .cameras import video_formats
         from .native_modes import enumerate_modes
         path = source["path"]
@@ -78,7 +76,7 @@ class Worker:
         from .gst_runtime import Gst
         from .media_service import MediaStream
         source = self.service["source"]
-        selector = {"oak": "oak:" + source.get("serial", ""), "v4l2": "v4l2:" + source.get("path", "")}.get(source["kind"], source["kind"])
+        selector = "v4l2:" + source["path"] if source["kind"] == "v4l2" else source["kind"]
         selector = source.get("default_choice", selector)
         self.args.source = selector
         if source["kind"] == "ros":

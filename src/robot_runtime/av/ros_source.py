@@ -6,7 +6,7 @@ import signal
 from queue import Full
 import time
 
-from .cameras import OakCapture
+from .cameras import ProcessCapture
 
 
 def frame_age_seconds(stamp_ns, ros_now_ns, tolerance_ms):
@@ -67,7 +67,8 @@ def ros_worker(device, width, height, fps, pixels, stamp, sequence, lock, stoppe
     node = context = executor = None
     signalled = False
     def request_stop(*_):
-        # Keep signal handling free of process-shared locks (see oak_worker).
+        # A signal can interrupt a wait holding a process-shared lock. Set only
+        # a local flag here; re-entering the shared Event could deadlock.
         nonlocal signalled
         signalled = True
     signal.signal(signal.SIGTERM, request_stop)
@@ -136,8 +137,8 @@ def ros_worker(device, width, height, fps, pixels, stamp, sequence, lock, stoppe
             context.shutdown()
 
 
-class RosCapture(OakCapture):
-    """Reuse the bounded latest-frame child transport, independently of DepthAI."""
+class RosCapture(ProcessCapture):
+    """Subscribe in a child process using bounded latest-frame transport."""
     def __init__(self, device, width, height, fps, policy):
         self.mode = {'provider': 'ROS Image', 'topic': device['topic'], 'ownership': 'subscription'}
         self.timeout_message = f"No fresh RGB images on {device['topic']}; check publisher, ROS domain and acquisition stamps"

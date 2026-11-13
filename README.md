@@ -5,8 +5,10 @@ A standalone ROS 2 runtime and browser platform for research, teaching, and outr
 The development package provides explicit process start/stop and recovery, a standalone CLI, authenticated browser commands, declared ROS topics/services/actions, live parameter inspection and editing, bounded spatial and diagnostic observations, requested image snapshots, and on-demand resource monitoring. Optional video and diagnostic gamepad services share runtime authentication and lifecycle. Diagnostic input does not grant vehicle-control authority.
 
 The package and preferred commands use `robot_runtime`. Version
-`0.1.0.dev27` combines independent segmented event recording with support for
-the bounded string types emitted by Jazzy's generated ROS interfaces. The previous
+`0.1.0.dev29` retires direct Python OAK video capture; OAK video uses the shared
+camera's ROS image output. It retains segmented event recording and owned Docker
+workloads. See the [media migration notes](docs/camera-gamepad-integration.md).
+The previous
 hyphenated console entry points remain compatibility aliases for existing
 installations. This is a development release: supported-host checks and synthetic
 fixtures do not establish stable-release sizing, hardware support, or vehicle

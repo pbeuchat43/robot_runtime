@@ -106,12 +106,12 @@ the supplied composition. Construction is inert; `connect()` is explicit.
 The wheel contains Python/JavaScript, policy defaults and local browser assets.
 Native dependencies are separately provisioned: GStreamer 1.24.2, the tested
 gst-plugins-rs WebRTC/SRTP 0.14.5 build, libnice, matching GI overrides, NumPy,
-and the chosen encoder. OAK capture additionally uses DepthAI 3.9.0; ROS Image
-capture uses the provisioned ROS 2 environment and OpenCV. Runtime-only installs
+and the chosen encoder. ROS Image capture uses the provisioned ROS 2 environment
+and OpenCV. Runtime-only installs
 do not load these libraries. No runtime download or Internet STUN/TURN is used.
 
 `deployment/prepare-av-native.py` copies an explicitly supplied validated native
-build and optional SDK into a new independent prefix and records per-file SHA256
+build into a new independent prefix and records per-file SHA256
 and licenses. It is a target-host artifact preparation helper, not a cross-platform
 installer or a substitute for building/provisioning those dependencies. The
 running services use this copied prefix, never the prototype checkout. The
@@ -122,8 +122,8 @@ Declare one runtime unit per capability with an absolute installed interpreter
 and arguments `-m robot_runtime.av.worker --profile /absolute/profile.json
 --state /absolute/private-state --capability video`. Configure its environment
 with `GST_PLUGIN_PATH` pointing to the prefix's `gstreamer/`, a writable private
-`GST_REGISTRY`, `ROBOT_AV_GI_OVERRIDES` pointing to `gi/`, and, if used, the copied
-SDK's `python/` on `PYTHONPATH`. Keep the unit's graceful SIGINT/SIGTERM policy.
+`GST_REGISTRY`, and `ROBOT_AV_GI_OVERRIDES` pointing to `gi/`.
+Keep the unit's graceful SIGINT/SIGTERM policy.
 `tests/av_fixture.py` is an executable example of both unit declarations.
 
 The matching optional profile section looks like:
@@ -132,7 +132,7 @@ The matching optional profile section looks like:
 {"av":{"services":[
   {"id":"video","label":"Camera","kind":"media","unit_id":"video",
    "host":"192.0.2.10","udp_port":41400,"max_sessions":5,
-   "encoder":"hardware","source":{"kind":"oak","label":"RGB","serial":"EXACTSERIAL"}},
+   "encoder":"hardware","source":{"kind":"v4l2","label":"RGB","path":"/dev/v4l/by-id/EXACT-RGB-DEVICE"}},
   {"id":"input","label":"Gamepad receipts","kind":"input","unit_id":"input",
    "host":"192.0.2.10","udp_port":41410,"max_sessions":5}
 ]}}
@@ -154,6 +154,14 @@ each supported launch. All choices share the source owner and ROS domain.
 The browser submits only a declared ID, never an arbitrary ROS name.
 Its sessions expire when
 the owning run or required mode changes. A `test` source needs only kind and label.
+
+Since runtime `0.1.0.dev29`, direct Python OAK capture and the preparation helper's
+`--sdk` option are retired. OAK video uses `kind: "ros"`, an image topic and the
+owning camera unit. The camera component owns the C++ DepthAI dependency; runtime
+does not import or copy Python DepthAI. Existing `kind: "oak"` profiles fail
+validation with a migration message. V4L2 capture and the GStreamer/WebRTC native
+preparation helper remain supported. Existing deployments are not migrated by
+updating source code.
 
 Choice-enabled media configuration includes `source_selection` with `id`,
 `revision` and the labelled choices with availability. The `camera` operation

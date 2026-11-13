@@ -51,22 +51,19 @@ def validate(value, units):
                 raise Fault("invalid_profile", "Media source must be an object")
             camera = item["source"] = dict(item["source"])
             kind = camera.get("kind")
-            required = {"test": (), "oak": ("serial",), "v4l2": ("path",),
+            if kind == "oak":
+                raise Fault("invalid_profile", "Direct OAK video is retired; declare a ROS image source and its camera owner")
+            required = {"test": (), "v4l2": ("path",),
                         "ros": ("owner_unit", "domain_id")}.get(kind)
             if required is None:
                 raise Fault("invalid_profile", "Unknown media source kind")
             fields(camera, ("kind", "label", *required), ("required_mode", "topic", "choices", "default_choice") if kind == "ros" else ())
             text(camera["label"], 120)
-            if kind == "oak":
-                serial = text(camera["serial"], 64)
-                if not serial.isalnum():
-                    raise Fault("invalid_profile", "OAK source requires its exact device serial")
             if kind == "v4l2":
                 path = absolute(camera["path"])
                 if not path.startswith(("/dev/v4l/by-id/", "/dev/v4l/by-path/")):
                     raise Fault("invalid_profile", "V4L2 sources require a stable /dev/v4l path")
-            if kind in ("oak", "v4l2"):
-                device = (kind, camera["serial" if kind == "oak" else "path"])
+                device = (kind, camera["path"])
                 for previous in devices.get(device, []):
                     if previous not in units[owner].get("conflicts", []) or owner not in units[previous].get("conflicts", []):
                         raise Fault("invalid_profile", "Services opening the same physical camera require mutual unit conflicts")
