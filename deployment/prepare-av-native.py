@@ -18,7 +18,6 @@ import sys
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--runtime', required=True, type=Path)
-    parser.add_argument('--sdk', type=Path, help='Optional site-packages containing depthai 3.9.0')
     parser.add_argument('--destination', required=True, type=Path)
     parser.add_argument('--system-root', type=Path,
                         help='Installed package root, normally /; defaults to the historical build sysroot')
@@ -39,15 +38,6 @@ def main():
     pairs += [(source, root / 'gi' / source.name) for source in overrides.iterdir() if source.is_file()]
     for name in ('python3-gst-1.0', 'gstreamer1.0-nice'):
         pairs.append((system_root / 'usr/share/doc' / name / 'copyright', root / 'licenses' / name))
-    if args.sdk:
-        sdk = args.sdk.resolve()
-        metadata = sdk / 'depthai-3.9.0.dist-info/METADATA'
-        if 'Version: 3.9.0\n' not in metadata.read_text():
-            parser.error('Expected the recorded DepthAI 3.9.0 installation')
-        for name in ('depthai', 'depthai.libs', 'depthai-3.9.0.dist-info'):
-            pairs += [(source, root / 'python' / source.relative_to(sdk)) for source in (sdk / name).rglob('*')
-                      if source.is_file() and '__pycache__' not in source.parts]
-        pairs.append((sdk / 'depthai.cpython-312-aarch64-linux-gnu.so', root / 'python/depthai.cpython-312-aarch64-linux-gnu.so'))
     for source, _destination in pairs:
         if not source.is_file():
             parser.error('Missing native artifact: ' + str(source))

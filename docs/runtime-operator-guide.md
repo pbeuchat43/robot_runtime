@@ -42,7 +42,7 @@ Save a profile as `~/.config/robot_runtime/profile.json`, selecting only trusted
 
 Profiles contain 1–20 units. Executable and working paths must be absolute and accessible. IDs use up to 32 lowercase ASCII letters, digits, underscores or hyphens, starting with a letter. Prerequisites must exist and be acyclic; they are checked at start and never launched automatically. Unknown fields/schema versions are rejected. `public_logs` defaults to false; explicitly enabling it exposes that provider's retained output to unauthenticated viewers. Provider output must be suitable for that audience.
 
-An available unit may declare up to eight `launch_modes`, each containing `id`,
+An available unit may declare up to 32 `launch_modes`, each containing `id`,
 `label` and a fixed `argv`. Optional `launch_selections` declare one to three
 independent selectors, each with `id`, `label` and one to eight `{id, label}`
 choices. Every mode then supplies a `selections` mapping resolving each selector.

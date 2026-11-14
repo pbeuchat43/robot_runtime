@@ -76,7 +76,7 @@ Settings::Settings(Json value) : json(std::move(value)) {
   backend=source.at("backend"); source_id=source.at("source_id"); frame_topic=source.at("frame_topic");
   overlay_topic=source.value("overlay_topic",""); overlay_kind=source.value("overlay_kind","");
   width=source.at("width");height=source.at("height");
-  require((width==1280&&height==720)||(width==640&&(height==480||height==640)),"unsupported recording dimensions");
+  require((width==1280&&height==720)||(width==640&&(height==360||height==480||height==640)),"unsupported recording dimensions");
   require(backend=="oak"||backend=="realsense","unsupported recording backend");
   require(source_id.size()<=256&&(source_id.empty()||source_id.rfind(backend+":",0)==0),"source identity/backend mismatch");
   require(std::regex_match(frame_topic,std::regex("/[A-Za-z0-9_/]{1,255}")),"invalid camera topic");

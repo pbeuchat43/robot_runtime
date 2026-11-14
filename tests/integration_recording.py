@@ -68,6 +68,10 @@ def main():
                 sequence+=1;now=time.monotonic_ns();frame.capture.generation=generation;frame.capture.sequence=sequence
                 frame.capture.acquisition_ns=now-2000000;frame.capture.received_ns=now;frame.depth_acquisition_ns=now-1000000
                 frame.depth_sequence=sequence+1000;frame.skew_ns=1000000
+                frame.capture.exposure_midpoint_ns=frame.capture.acquisition_ns+200000
+                frame.capture.exposure_duration_ns=400000
+                frame.depth_exposure_midpoint_ns=frame.depth_acquisition_ns
+                frame.depth_exposure_duration_ns=100000
                 for image,info,stamp in ((frame.rgb,frame.rgb_info,frame.capture.acquisition_ns+offset),(frame.depth,frame.depth_info,frame.depth_acquisition_ns+offset)):
                     image.header.stamp.sec=stamp//1000000000;image.header.stamp.nanosec=stamp%1000000000;image.header.frame_id='fixture_optical'
                     info.header=image.header
@@ -94,6 +98,8 @@ def main():
                     d.capture=frame.capture;d.calibration_id=frame.calibration_id;d.source_width=1280;d.source_height=720
                     d.model_id='synthetic';d.model_sha256='b'*64;d.model_profile_sha256='c'*64;d.engine_sha256='d'*64
                     d.depth_sequence=frame.depth_sequence;d.depth_acquisition_ns=frame.depth_acquisition_ns
+                    d.depth_exposure_midpoint_ns=frame.depth_exposure_midpoint_ns
+                    d.depth_exposure_duration_ns=frame.depth_exposure_duration_ns
                     overlay.publish(message)
                 frame.capture.source_id='oak:fixture';frame.capture.clock_domain='linux_monotonic:'+boot
                 next_frame=time.monotonic()+.05
@@ -133,6 +139,10 @@ def main():
             assert len(rows)==int(output['counters']['encoded'])==int(output['counters']['finalized'])>(25 if args.scenario=='rate-limit' else 80)
             assert len({row['capture']['generation'] for row in rows})==(2 if args.scenario=='recovery' else 1)
             assert all((row['capture']['generation'],row['capture']['sequence']) in keys for row in rows)
+            assert all(int(row['capture']['exposure_midpoint_ns']) == int(row['capture']['acquisition_ns'])+200000
+                       and row['capture']['exposure_duration_ns']=='400000'
+                       and row['depth_exposure_midpoint_ns']==row['depth_acquisition_ns']
+                       and row['depth_exposure_duration_ns']=='100000' for row in rows)
             by_file={}
             for row in rows:by_file.setdefault(row['segment'],set()).add(row['capture']['generation'])
             assert all(len(values)==1 for values in by_file.values()),'generations spliced in one segment'

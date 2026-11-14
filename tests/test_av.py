@@ -19,7 +19,7 @@ from aiohttp.test_utils import TestClient, TestServer
 from robot_runtime.auth import COOKIE, write_credential
 from robot_runtime.av.sessions import Sessions
 from robot_runtime.av.worker import Worker, declared_camera
-from robot_runtime.av.cameras import oak_worker
+from robot_runtime.av.ros_source import ros_worker
 from robot_runtime.av.signalling import Signalling, peer_payload
 from robot_runtime.av_profile import current_target
 from robot_runtime.av_web import AVGateway
@@ -48,26 +48,44 @@ def choices_fixture():
 
 
 class CaptureSignalTests(unittest.TestCase):
-    def test_signal_during_shared_event_wait_does_not_reenter_its_lock(self):
+    def test_ros_signal_during_spin_does_not_reenter_shared_event_lock(self):
         handlers = {}
-        stopped, errors, capture = Mock(), Mock(), Mock()
-        def interrupted_wait(_timeout):
-            # Models a signal delivered while multiprocessing.Event owns its
-            # non-reentrant condition lock. Re-entry would deadlock in production.
+        stopped, errors, context, node, executor = Mock(), Mock(), Mock(), Mock(), Mock()
+        stopped.is_set.return_value = False
+        def interrupted_spin(**_kwargs):
+            # The signal handler must never acquire a process-shared lock,
+            # including when a native wait is interrupted by shutdown.
             stopped.set.side_effect = AssertionError('Shared lock re-entered')
             handlers[signal.SIGINT](signal.SIGINT, None)
-            return False
-        stopped.wait.side_effect = interrupted_wait
-        with patch('robot_runtime.av.cameras.signal.signal', side_effect=lambda sig, fn: handlers.update({sig: fn})), \
-             patch('robot_runtime.av.cameras.NativeOakCapture', return_value=capture):
-            oak_worker({}, 2, 2, 5, bytearray(6), Mock(), Mock(), Mock(), stopped, errors, Mock())
+        executor.spin_once.side_effect = interrupted_spin
+        modules = {
+            'cv2': Mock(), 'rclpy.context': SimpleNamespace(Context=Mock(return_value=context)),
+            'rclpy.executors': SimpleNamespace(SingleThreadedExecutor=Mock(return_value=executor)),
+            'rclpy.node': SimpleNamespace(Node=Mock(return_value=node)),
+            'rclpy.parameter': SimpleNamespace(Parameter=Mock()),
+            'rclpy.qos': SimpleNamespace(QoSProfile=Mock(), HistoryPolicy=Mock(),
+                                        ReliabilityPolicy=Mock(), DurabilityPolicy=Mock()),
+            'sensor_msgs.msg': SimpleNamespace(Image=Mock()),
+        }
+        device = dict(topic='/test/image', policy=dict(ros_domain_id=None, ros_use_sim_time=False))
+        with patch.dict('sys.modules', modules), patch.dict('os.environ'), \
+             patch('robot_runtime.av.ros_source.signal.signal', side_effect=lambda sig, fn: handlers.update({sig: fn})):
+            ros_worker(device, 2, 2, 5, bytearray(6), Mock(), Mock(), Mock(), stopped, errors, Mock())
         stopped.set.assert_not_called()
-        capture.read.assert_not_called()
-        capture.close.assert_called_once()
+        executor.spin_once.assert_called_once()
+        executor.shutdown.assert_called_once_with(timeout_sec=1)
+        node.destroy_node.assert_called_once()
+        context.shutdown.assert_called_once()
         errors.put_nowait.assert_not_called()
 
 
 class ProfileTests(unittest.TestCase):
+    def test_retired_direct_oak_source_reports_ros_migration(self):
+        value = fixture()
+        value['av']['services'][0]['source'] = dict(kind='oak', label='OAK', serial='ABCDE')
+        with self.assertRaisesRegex(Fault, 'Direct OAK video is retired.*ROS image source'):
+            validate(value, check_paths=False)
+
     def test_declared_ros_choices_are_bounded_and_apply_to_owner_launches(self):
         config = validate(choices_fixture(), check_paths=False)[0]
         cameras, _ = declared_camera(config['av']['services'][0]['source'])
@@ -97,7 +115,7 @@ class ProfileTests(unittest.TestCase):
         with self.assertRaises(Fault): validate(value, check_paths=False)
         value = fixture()
         first = value['av']['services'][0]
-        first['source'] = dict(kind='oak', label='OAK', serial='ABCDE')
+        first['source'] = dict(kind='v4l2', label='RGB', path='/dev/v4l/by-id/test-rgb')
         value['av']['services'][1] = dict(first, id='second', unit_id='input', udp_port=41010)
         with self.assertRaises(Fault): validate(value, check_paths=False)
         value['units'][0]['conflicts'], value['units'][1]['conflicts'] = ['input'], ['worker']

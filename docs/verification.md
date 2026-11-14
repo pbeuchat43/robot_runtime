@@ -15,6 +15,22 @@ tested sources and artifacts. Fresh-image/Nano qualification remains open;
 broader operational robustness testing is deferred until more of the system is
 complete. The initial-snapshot results below retain their original scope.
 
+## Direct OAK retirement, 14 November 2026
+
+Runtime `0.1.0.dev29`, implementation `33854e97c0b248e731ac86c57bef17c43a42257a`,
+was checked in an isolated installed wheel on reserved Jah. All 25 focused
+camera/input/image tests passed, including rejection of retired direct OAK
+profiles, V4L2 ownership conflicts and ROS worker signal cleanup. All 105
+installed package files matched source, the source distribution built, and the
+four preferred console commands accepted `--help`.
+
+A finite synthetic ROS publisher delivered three images through the actual
+`RosCapture` child process in a private domain; the frame sizes/ages passed and
+the child exited after graceful close. This checks the retained transport after
+its neutral rename. It does not establish camera, browser or display performance;
+those unchanged paths retain their earlier evidence. The GStreamer preparation
+helper remains supported, with its unused Python DepthAI copy option removed.
+
 ## Initial snapshot verification
 
 Verified on 24 October 2026 (Australia/Sydney), using isolated temporary directories on `jah`. The environment was Ubuntu 24.04 arm64, Python 3.12, systemd 255, ROS 2 Jazzy, and headless Chromium. All application, browser, and native checks used the installed `robot-runtime` `0.1.0.dev19` wheel with `PYTHONPATH` unset.
@@ -40,7 +56,7 @@ The cleanup audit checked 45 candidate services, found no remaining candidate pr
 - [Unit results](evidence/initial-snapshot/unit.log), [integration progress](evidence/initial-snapshot/progress.log), and [suite commands](evidence/initial-snapshot/verify.sh)
 - [Retained initial unit failure](evidence/initial-snapshot/unit-first.log): fixture profile construction incorrectly required a built ROS overlay. Removing that native dependency from pure unit-profile construction restored all 135 tests; native suites separately built and exercised the local interfaces.
 
-The package records identify the artifacts actually used for execution. Documentation and evidence were assembled afterwards, so source distributions built from the final repository may have different archive hashes. Runtime and fixture identities are bound by the source hash manifests; final packaging checks compare installed package bytes against these files. Dependency wheels and private host-preservation audits remain in local artifacts.
+The package records identify the artifacts actually used for execution. Documentation and evidence were assembled afterwards, so source distributions built from the final repository may have different archive hashes. Runtime and fixture identities are bound by the source hash manifests; final packaging checks compare installed package bytes against these files. Dependency wheels and private host-preservation audits were kept in local artifacts, which were later intentionally discarded. Availability of any copies on Jah has not been checked.
 
 ## Initial snapshot limits
 

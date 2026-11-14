@@ -27,8 +27,10 @@ sequence with a hidden document and an already-pending refresh. The hardware
 campaign also exposed fixture issues: a click before readiness and Chromium's
 headless freeze leaving presentation callbacks suspended. The final finite
 slow-viewer fixture blocks the browser main thread for eight seconds, then tests
-source loss and recovery separately. Failed attempts remain in the private
-verification archive and are not counted as acceptance passes.
+source loss and recovery separately. Failed attempts were recorded in the private
+verification archive and are not counted as acceptance passes. The local
+historical copies were later intentionally discarded. Availability of any copies
+on Jah has not been checked.
 
 - [Browser checks and cleanup](browser-clients.json)
 - [Installed package assets and artifact hashes](package-identity.json)
