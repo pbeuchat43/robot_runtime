@@ -20,13 +20,18 @@ History is not written to disk. Restarting the manager clears it.
 ```sh
 robot-runtime --state /path/to/state resources
 robot-runtime --state /path/to/state resources --history
-robot-runtime --state /path/to/state resources --watch
+robot-runtime --state /path/to/state resources --watch --json
 ```
 
 The first two commands only read cached data. `--watch` activates monitoring
 until interrupted, sharing the same collector with browsers and other CLI
 viewers. Its first JSON line includes retained history; later lines contain
 current samples. These commands do not depend on a running web server.
+Use `--human` for readable updates. The deployment command
+`lucid_conduct runtime resources --watch` defaults to that readable format;
+add `--json` when collecting JSON Lines.
+Human watches summarize the initial retained history count; use `--history`
+without `--watch` to display the samples with named columns.
 
 ## Meaning and limits
 

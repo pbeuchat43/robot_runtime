@@ -15,6 +15,21 @@ tested sources and artifacts. Fresh-image/Nano qualification remains open;
 broader operational robustness testing is deferred until more of the system is
 complete. The initial-snapshot results below retain their original scope.
 
+## CLI output, 16 November 2026
+
+Runtime `0.1.0.dev30` at `ea91a1d904eae688f5098fc5052b962aa5545ef5`
+passed 202 installed unit tests and the 10-check runtime, 14-check CLI and
+12-check ROS native suites on reserved Jah. The paired deployment package
+passed 68 unit tests and four native maintenance checks. Every native suite
+finished with fresh, unblocked observations, no member processes and no cleanup
+errors. Package sources, assets, notices and all entry points were also checked.
+
+Standalone `robot_runtime` and its legacy alias retain JSON defaults and offer
+`--human`; `lucid_conduct` uses readable output by default and `--json` for scripts.
+The [paired CLI verification record](../../robot_deployment/docs/evidence/2026-11-16-cli-output/README.md)
+contains exact package identities, stream/error coverage and deployment results.
+These software checks do not add fresh hardware or vehicle acceptance evidence.
+
 ## Direct OAK retirement, 14 November 2026
 
 Runtime `0.1.0.dev29`, implementation `33854e97c0b248e731ac86c57bef17c43a42257a`,

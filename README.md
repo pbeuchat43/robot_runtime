@@ -14,6 +14,11 @@ installations. This is a development release: supported-host checks and syntheti
 fixtures do not establish stable-release sizing, hardware support, or vehicle
 acceptance.
 
+Version `0.1.0.dev30` adds optional `--human` summaries and tables across the
+standalone CLI, including errors and watch modes. Standalone commands retain
+their JSON default and now accept explicit `--json`. The deployment-owned
+`lucid_conduct` command selects human output by default; scripts use `--json`.
+
 Start with the [operator guide](docs/runtime-operator-guide.md) for standalone installation, configuration, CLI, HTTPS access, and recovery. ROS providers are declared through the [ROS operator guide](docs/ros-operator-guide.md). The runtime has no dependency on a particular robot workspace or installer.
 
 ## Documentation

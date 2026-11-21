@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Paul N. Beuchat
 import argparse
-import json
 import os
 import re
 import sys
@@ -12,9 +11,10 @@ from pathlib import Path
 
 from .common import Fault, loads
 from .ipc import request, watch
+from .output import ArgumentParser, children, emit, emit_logs
 
 
-def configure_parser(parser):
+def configure_parser(parser, *, output_options=True):
     """Attach the shared runtime grammar to a standalone or embedding parser."""
     parser.add_argument("--state", type=Path, default=Path(os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local/state"))) / "robot_runtime")
     commands = parser.add_subparsers(dest="runtime_command", required=True)
@@ -110,11 +110,21 @@ def configure_parser(parser):
     parameter_set.add_argument("--generation")
     parameter_set.add_argument("--config-revision")
     parameter_set.add_argument("--expires-at-ms", type=int)
+    if output_options:
+        def add_output(command):
+            output = command.add_mutually_exclusive_group()
+            output.add_argument("--json", dest="structured", action="store_true", default=argparse.SUPPRESS,
+                                help="Emit JSON (standalone compatibility default); streams use JSON Lines")
+            output.add_argument("--human", dest="structured", action="store_false", default=argparse.SUPPRESS,
+                                help="Emit readable summaries and tables, including errors and watches")
+            for child in children(command):
+                add_output(child)
+        add_output(parser)
     return parser
 
 
 def build_parser(*, prog=None):
-    return configure_parser(argparse.ArgumentParser(prog=prog,
+    return configure_parser(ArgumentParser(prog=prog,
         description="Operate declared runtime units through the local manager. Mutations report a lookup request ID; acceptance is not readiness."))
 
 
@@ -151,6 +161,7 @@ def log_pages(args):
 
 def dispatch(args):
     """Execute parsed runtime arguments, shared by standalone and deployment CLIs."""
+    structured = getattr(args, "structured", True)
     try:
         if args.runtime_command == "catalog":
             from .profile import catalog
@@ -163,12 +174,12 @@ def dispatch(args):
                 result = request(args.state, "ros_topic_command", capability_id=args.capability, choice=args.choice, request_id=identifier,
                     expected_run=args.expected_run, generation=args.generation or status["generation"], config_revision=args.config_revision or status["config_revision"],
                     expires_at_ms=args.expires_at_ms if args.expires_at_ms is not None else status["server_time_ms"]+10000)
-                print(json.dumps(result, indent=2))
+                emit(result, structured=structured)
                 return
             if args.ros_command == "actions":
                 while True:
                     result = request(args.state, "ros_actions")
-                    print(json.dumps(result, indent=None if args.watch else 2), flush=True)
+                    emit(result, structured=structured, stream=args.watch)
                     if not args.watch:
                         return
                     time.sleep(1)
@@ -181,7 +192,7 @@ def dispatch(args):
                     capability_id=args.capability, request_id=identifier, expected_run=args.expected_run,
                     generation=args.generation or status["generation"], config_revision=args.config_revision or status["config_revision"],
                     expires_at_ms=args.expires_at_ms if args.expires_at_ms is not None else status["server_time_ms"] + 10000, **payload)
-                print(json.dumps(result, indent=2))
+                emit(result, structured=structured)
                 return
             if args.ros_command == "parameters":
                 if args.parameter_command == "read":
@@ -201,11 +212,11 @@ def dispatch(args):
                         generation=args.generation or catalog["generation"], config_revision=args.config_revision or catalog["config_revision"],
                         expires_at_ms=args.expires_at_ms if args.expires_at_ms is not None else int(time.time()*1000)+10000,
                         changes=loads(args.changes))
-                print(json.dumps(result, indent=2))
+                emit(result, structured=structured)
                 return
             if args.ros_command == "watch":
                 for result in watch(args.state, "ros_watch", topics=args.topic):
-                    print(json.dumps(result), flush=True)
+                    emit(result, structured=structured, stream=True)
                 return
             if args.ros_command == "call":
                 status = request(args.state, "ros_status")
@@ -223,7 +234,7 @@ def dispatch(args):
         elif args.runtime_command == "resources":
             if args.watch:
                 for result in watch(args.state, "resource_watch"):
-                    print(json.dumps(result), flush=True)
+                    emit(result, structured=structured, stream=True)
                 return
             result = request(args.state, "resource_status", history=args.history)
         elif args.runtime_command == "validate":
@@ -238,7 +249,7 @@ def dispatch(args):
             result = dict(created=True, path=str(args.file))
         elif args.runtime_command == "watch":
             for result in watch(args.state):
-                print(json.dumps(result), flush=True)
+                emit(result, structured=structured, stream=True)
             return
         elif args.runtime_command in ("start", "stop", "restart", "resolve"):
             needs_run = args.runtime_command in ("stop", "restart") and args.expected_run is None
@@ -268,15 +279,15 @@ def dispatch(args):
         elif args.runtime_command == "inspect":
             result = request(args.state, "inspect", run_id=args.run_id)
         else:
-            for result in log_pages(args):
-                print(json.dumps(result, indent=None if args.follow else 2), flush=True)
+            for index, result in enumerate(log_pages(args)):
+                emit_logs(result, structured=structured, follow=args.follow, first=index == 0)
             return
-        print(json.dumps(result, indent=2))
+        emit(result, structured=structured)
     except KeyboardInterrupt:
         return
     except (Fault, OSError) as exc:
         result = exc.as_dict() if isinstance(exc, Fault) else dict(code="io_error", message=str(exc))
-        print(json.dumps(dict(error=result)), file=sys.stderr)
+        emit(dict(error=result), structured=structured, error=True, file=sys.stderr)
         raise SystemExit(1)
 
 

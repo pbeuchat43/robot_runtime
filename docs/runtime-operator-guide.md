@@ -83,8 +83,10 @@ The `robot_runtime` entry point defaults to `~/.local/state/robot_runtime` (or t
 Preferred service entry points are `robot_runtime_manager`, `robot_runtime_web`
 and `robot_runtime_av`. Previous hyphenated spellings remain compatibility aliases
 for existing installations. Internal service templates call neutral Python
-modules. `cli.configure_parser(parser)` and `cli.dispatch(args)` are the shared
+modules. `cli.configure_parser(parser, output_options=True)` and `cli.dispatch(args)` are the shared
 embedding interface; `cli.main(argv=None)` also accepts an explicit argument list.
+Embedders owning their output flags can pass `output_options=False` and set
+`args.structured` (`True` for JSON, `False` for human; omitted preserves JSON).
 
 ```sh
 robot_runtime status
@@ -104,7 +106,29 @@ robot_runtime inspect RUN_ID
 robot_runtime watch
 ```
 
-CLI output is JSON. A mutation prints its request ID to stderr before dispatch. Start completion establishes supervisor acceptance, not application readiness. Readiness is explicitly unavailable in this slice. `status` uses cached observations; `--fresh` audits the supervisor. Ownership-property age is separate from lifecycle observation age. Browser status keeps acquisition age across delivery/reconnection and becomes unavailable if observation is too old.
+Standalone CLI output remains JSON for compatibility, for both `robot_runtime`
+and `robot-runtime`. Add `--json` explicitly in scripts, or `--human` for readable
+summaries, tables and nested sections. Either option works before or after the
+subcommand, including ROS subcommands. Piping does not change the format.
+JSON one-shot payloads and errors keep their schemas; watches and log follow
+keep one JSON payload per line. Human watches print separated updates; human log
+follow prints only new records and gaps/truncation after the initial run metadata.
+`lucid_conduct runtime` uses human output by default and requires `--json` in scripts.
+Human status/watch retains current observations and recovery IDs, while omitting
+repeated mode/selection definitions and recording configuration. Use `catalog`
+for those definitions or `status --json` for the complete status payload.
+
+A mutation prints its request ID to stderr before dispatch, in both formats, so
+a lost response can still be looked up. Errors go to stderr in the selected
+format. Runtime faults/I/O errors still exit 1, argument errors 2, and interrupted
+watches 0. Explicit `--json` also formats argument errors using
+`{"error": {"code": "invalid_arguments", "message": ...}}`; legacy standalone
+argument errors retain argparse usage text. Help/version remain plain text.
+Start completion establishes supervisor acceptance, not application readiness.
+Readiness is explicitly unavailable in this slice. `status` uses cached
+observations; `--fresh` audits the supervisor. Ownership-property age is separate
+from lifecycle observation age. Browser status keeps acquisition age across
+delivery/reconnection and becomes unavailable if observation is too old.
 
 Every accepted start gets a unique run ID and never-reused service name. A populated or unresolved run blocks replacement. Stop requires its expected run ID, sends one declared graceful signal to the cgroup and observes the deadline. It never escalates or repeats automatically. A timeout remains in operation history even if the provider subsequently exits. A launcher that forwards/escalates signals needs provider-specific validation; these mechanics do not prove ROS shutdown or physical stopping.
 
